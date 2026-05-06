@@ -4,20 +4,19 @@ import { eq, and, sum } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db, schema } from "@/lib/db";
 import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import {
   FeedbackTable,
   type RunPayload,
 } from "@/components/feedback-table";
 import type { FeedbackRowData } from "@/components/feedback-row";
 
 export const dynamic = "force-dynamic";
+
+const STATUS_LABEL: Record<string, string> = {
+  draft: "draft",
+  generating: "in press",
+  review: "in review",
+  confirmed: "filed",
+};
 
 export default async function RunPage({
   params,
@@ -66,39 +65,64 @@ export default async function RunPage({
     model: r.model,
   }));
 
-  return (
-    <div className="space-y-6">
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink render={<Link href="/" />}>Courses</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink render={<Link href={`/courses/${run.courseId}`} />}>
-              {run.courseName}
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>{run.assignmentTitle}</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+  const statusLabel = STATUS_LABEL[run.status] ?? run.status;
+  const isConfirmed = run.status === "confirmed";
 
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {run.assignmentTitle}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          {run.courseName} · run created{" "}
-          {run.createdAt.toLocaleString(undefined, {
-            dateStyle: "medium",
-            timeStyle: "short",
-          })}{" "}
-          · status {run.status}
-        </p>
-      </div>
+  return (
+    <div className="space-y-10">
+      <nav aria-label="breadcrumb" className="anim-fade flex flex-wrap items-center gap-2 font-mono-num text-[0.7rem] uppercase tracking-[0.2em] text-foreground/55">
+        <Link href="/" className="hover:text-foreground">classes</Link>
+        <span className="font-display text-base italic text-foreground/35">/</span>
+        <Link href={`/courses/${run.courseId}`} className="hover:text-foreground truncate max-w-[16rem]">
+          {run.courseName}
+        </Link>
+        <span className="font-display text-base italic text-foreground/35">/</span>
+        <span className="text-foreground">dossier</span>
+      </nav>
+
+      <header className="anim-fade-up grid gap-8 border-b border-rule-strong/60 pb-8 lg:grid-cols-[1fr_auto] lg:items-end">
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <span className="tracking-eyebrow text-foreground/55">a dossier from</span>
+            <span className="font-display italic text-foreground/65">
+              {run.courseName}
+            </span>
+          </div>
+          <h1 className="font-display text-[clamp(2rem,4.5vw,3.4rem)] leading-[1.05] tracking-tight">
+            {run.assignmentTitle}
+          </h1>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 font-mono-num text-[0.7rem] uppercase tracking-[0.2em] text-foreground/55">
+            <span>
+              opened&nbsp;
+              {run.createdAt.toLocaleString(undefined, {
+                dateStyle: "medium",
+                timeStyle: "short",
+              })}
+            </span>
+            <span aria-hidden>·</span>
+            <span>{feedbackRows.length} students</span>
+          </div>
+        </div>
+
+        <div className="flex flex-col items-start gap-2 lg:items-end">
+          <span className="tracking-eyebrow text-foreground/55">status</span>
+          <span
+            className={[
+              "inline-flex items-center gap-2 rounded-full border px-4 py-1.5 font-mono-num text-[0.7rem] uppercase tracking-[0.2em]",
+              isConfirmed
+                ? "border-foreground/80 bg-foreground text-background"
+                : run.status === "generating"
+                ? "border-marker/50 bg-marker/10 text-marker"
+                : "border-rule-strong text-foreground/75",
+            ].join(" ")}
+          >
+            {run.status === "generating" ? (
+              <span className="anim-nib block h-1.5 w-1.5 rounded-full bg-marker" />
+            ) : null}
+            {statusLabel}
+          </span>
+        </div>
+      </header>
 
       <FeedbackTable
         initialRun={initialRun}

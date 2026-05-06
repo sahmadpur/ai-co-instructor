@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { RegenerateDialog } from "@/components/regenerate-dialog";
 
@@ -21,24 +20,58 @@ export type FeedbackRowData = {
   model: string;
 };
 
-const STATUS_VARIANT: Record<
+const STATUS_CONFIG: Record<
   FeedbackRowData["status"],
-  "default" | "secondary" | "destructive" | "outline"
+  { label: string; cls: string; dot: string }
 > = {
-  pending: "outline",
-  generating: "outline",
-  generated: "secondary",
-  edited: "default",
-  failed: "destructive",
+  pending: {
+    label: "queued",
+    cls: "border-rule-strong text-foreground/55",
+    dot: "bg-foreground/30",
+  },
+  generating: {
+    label: "in press",
+    cls: "border-marker/40 bg-marker/10 text-marker",
+    dot: "bg-marker anim-nib",
+  },
+  generated: {
+    label: "ai draft",
+    cls: "border-foreground/30 text-foreground/75",
+    dot: "bg-foreground/50",
+  },
+  edited: {
+    label: "edited",
+    cls: "border-foreground/85 bg-foreground text-background",
+    dot: "bg-marker",
+  },
+  failed: {
+    label: "failed",
+    cls: "border-destructive/50 bg-destructive/10 text-destructive",
+    dot: "bg-destructive",
+  },
 };
+
+function initials(name: string): string {
+  return (
+    name
+      .split(/\s+/)
+      .map((s) => s[0])
+      .filter(Boolean)
+      .slice(0, 2)
+      .join("")
+      .toUpperCase() || "·"
+  );
+}
 
 export function FeedbackRow({
   row,
   locked,
+  index,
   onChange,
 }: {
   row: FeedbackRowData;
   locked: boolean;
+  index: number;
   onChange: (next: FeedbackRowData) => void;
 }) {
   const initial = row.editedFeedback ?? row.aiFeedback ?? "";
@@ -106,53 +139,103 @@ export function FeedbackRow({
   }
 
   const isBusy = row.status === "pending" || row.status === "generating";
+  const status = STATUS_CONFIG[row.status];
 
   return (
-    <TableRow>
-      <TableCell className="align-top font-medium">
-        <div>{row.studentName}</div>
-        {row.studentEmail ? (
-          <div className="text-xs text-muted-foreground">{row.studentEmail}</div>
-        ) : null}
-      </TableCell>
-      <TableCell className="align-top text-sm text-muted-foreground max-w-[18rem]">
-        <div className="line-clamp-3 whitespace-pre-wrap">
-          {row.submissionPreview ?? "—"}
+    <TableRow className="border-b border-rule align-top">
+      <TableCell className="w-[14rem] py-5 align-top">
+        <div className="flex items-start gap-3">
+          <span className="font-display text-2xl italic text-foreground/30 tabular-nums leading-none pt-1 w-6 text-right">
+            {(index + 1).toString().padStart(2, "0")}
+          </span>
+          <div className="grid h-10 w-10 place-items-center rounded-full border border-rule-strong/60 bg-paper/60 font-display text-sm italic text-foreground/75">
+            {initials(row.studentName)}
+          </div>
+          <div className="min-w-0">
+            <div className="font-display text-base leading-tight">
+              {row.studentName}
+            </div>
+            {row.studentEmail ? (
+              <div className="font-mono-num text-[0.65rem] uppercase tracking-[0.16em] text-foreground/55 truncate">
+                {row.studentEmail}
+              </div>
+            ) : null}
+          </div>
         </div>
-        <div className="mt-1 text-xs uppercase tracking-wide">
-          {row.submissionType}
+      </TableCell>
+
+      <TableCell className="max-w-[18rem] py-5 align-top text-sm">
+        <div className="space-y-2">
+          <span className="font-mono-num text-[0.6rem] uppercase tracking-[0.2em] text-foreground/55">
+            {row.submissionType}
+          </span>
+          <div className="line-clamp-3 whitespace-pre-wrap font-display italic leading-snug text-foreground/70 border-l-2 border-rule pl-3">
+            {row.submissionPreview ?? "—"}
+          </div>
         </div>
       </TableCell>
-      <TableCell className="align-top min-w-[24rem]">
+
+      <TableCell className="min-w-[26rem] py-5 align-top">
         {isBusy ? (
-          <div className="text-sm text-muted-foreground italic">
-            {row.status === "generating" ? "generating…" : "queued…"}
+          <div className="flex items-center gap-2 font-mono-num text-xs uppercase tracking-[0.18em] text-foreground/55">
+            <span className="anim-nib block h-2 w-2 rounded-full bg-marker" />
+            {row.status === "generating" ? "the AI is writing…" : "queued, awaiting pen…"}
           </div>
         ) : row.status === "failed" ? (
-          <div className="space-y-2">
-            <div className="text-sm text-destructive">
-              {row.errorMessage ?? "generation failed"}
+          <div className="space-y-2 rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
+            <div className="font-mono-num text-[0.65rem] uppercase tracking-[0.2em]">
+              generation failed
+            </div>
+            <div className="font-display italic">
+              {row.errorMessage ?? "an unknown error"}
             </div>
           </div>
         ) : (
-          <Textarea
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onBlur={persist}
-            disabled={locked || saving}
-            rows={Math.max(6, Math.min(14, draft.split("\n").length + 2))}
-            className="font-sans text-sm"
-          />
+          <div className="relative">
+            <Textarea
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onBlur={persist}
+              disabled={locked || saving}
+              rows={Math.max(6, Math.min(14, draft.split("\n").length + 2))}
+              className="bg-paper/40 text-[0.95rem] leading-relaxed"
+              style={{
+                fontFamily: "var(--font-manrope), system-ui, sans-serif",
+              }}
+            />
+            {row.editedFeedback != null ? (
+              <span
+                aria-hidden
+                className="pointer-events-none absolute right-2 top-2 font-mono-num text-[0.6rem] uppercase tracking-[0.18em] text-marker/85"
+              >
+                · edited
+              </span>
+            ) : null}
+          </div>
         )}
       </TableCell>
-      <TableCell className="align-top">
-        <Badge variant={STATUS_VARIANT[row.status]}>{row.status}</Badge>
-        {saving ? (
-          <div className="mt-1 text-xs text-muted-foreground">saving…</div>
-        ) : null}
+
+      <TableCell className="w-[8.5rem] py-5 align-top">
+        <div className="flex flex-col items-start gap-2">
+          <span
+            className={[
+              "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-mono-num text-[0.6rem] uppercase tracking-[0.18em]",
+              status.cls,
+            ].join(" ")}
+          >
+            <span className={`block h-1.5 w-1.5 rounded-full ${status.dot}`} />
+            {status.label}
+          </span>
+          {saving ? (
+            <span className="font-mono-num text-[0.6rem] uppercase tracking-[0.18em] text-foreground/55">
+              saving…
+            </span>
+          ) : null}
+        </div>
       </TableCell>
-      <TableCell className="align-top">
-        <div className="flex flex-col gap-2">
+
+      <TableCell className="w-[8.5rem] py-5 align-top">
+        <div className="flex flex-col gap-1">
           <RegenerateDialog
             feedbackId={row.id}
             currentModel={row.model}
@@ -167,8 +250,9 @@ export function FeedbackRow({
               size="sm"
               onClick={resetToAi}
               disabled={saving}
+              className="font-mono-num text-[0.65rem] uppercase tracking-[0.18em] justify-start"
             >
-              Reset to AI
+              reset to ai
             </Button>
           ) : null}
         </div>

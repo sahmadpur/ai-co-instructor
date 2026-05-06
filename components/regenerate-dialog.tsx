@@ -75,19 +75,36 @@ export function RegenerateDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button variant="outline" size="sm" disabled={disabled} />}>
-        Regenerate
+      <DialogTrigger
+        render={
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={disabled}
+            className="font-mono-num text-[0.7rem] uppercase tracking-[0.18em]"
+          />
+        }
+      >
+        rewrite
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Regenerate feedback</DialogTitle>
-          <DialogDescription>
+          <div className="tracking-eyebrow text-foreground/55">a second pass</div>
+          <DialogTitle className="font-display text-2xl tracking-tight">
+            Rewrite this feedback
+          </DialogTitle>
+          <DialogDescription className="font-display italic text-foreground/65">
             Optionally add extra instructions for this student. Leave blank to
             re-run with the same focus.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-2">
-          <Label htmlFor="regen-instructions">Additional instructions</Label>
+          <Label
+            htmlFor="regen-instructions"
+            className="font-mono-num text-[0.7rem] uppercase tracking-[0.2em] text-foreground/65"
+          >
+            additional instructions
+          </Label>
           <Textarea
             id="regen-instructions"
             rows={4}
@@ -98,13 +115,18 @@ export function RegenerateDialog({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="regen-model">Model</Label>
+          <Label
+            htmlFor="regen-model"
+            className="font-mono-num text-[0.7rem] uppercase tracking-[0.2em] text-foreground/65"
+          >
+            the pen
+          </Label>
           <select
             id="regen-model"
             value={model}
             onChange={(e) => setModel(e.target.value as ModelId)}
             disabled={submitting}
-            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            className="font-mono-num text-sm flex h-9 w-full rounded-md border border-input bg-paper/60 px-3 py-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {(Object.keys(MODELS_BY_PROVIDER) as Provider[]).map((p) => (
               <optgroup key={p} label={PROVIDER_LABELS[p]}>
@@ -121,8 +143,8 @@ export function RegenerateDialog({
           <DialogClose render={<Button variant="ghost" disabled={submitting} />}>
             Cancel
           </DialogClose>
-          <Button onClick={regenerate} disabled={submitting}>
-            {submitting ? "Submitting…" : "Regenerate"}
+          <Button onClick={regenerate} disabled={submitting} className="font-display italic">
+            {submitting ? "Submitting…" : "Rewrite"}
           </Button>
         </DialogFooter>
       </DialogContent>

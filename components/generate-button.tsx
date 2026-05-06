@@ -65,10 +65,17 @@ export function GenerateForm({
     }
   }
 
+  const noSubs = submissionsReady === 0;
+
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form onSubmit={onSubmit} className="space-y-6">
       <div className="space-y-2">
-        <Label htmlFor="feedback-focus">Feedback focus (optional)</Label>
+        <Label
+          htmlFor="feedback-focus"
+          className="font-mono-num text-[0.7rem] uppercase tracking-[0.2em] text-foreground/65"
+        >
+          marginal note <span className="font-display normal-case italic text-foreground/45">(optional)</span>
+        </Label>
         <Textarea
           id="feedback-focus"
           rows={4}
@@ -76,16 +83,26 @@ export function GenerateForm({
           value={feedbackFocus}
           onChange={(e) => setFeedbackFocus(e.target.value)}
           disabled={submitting}
+          className="bg-paper/60"
         />
+        <p className="font-display text-xs italic text-foreground/55">
+          What should the AI pay particular attention to?
+        </p>
       </div>
+
       <div className="space-y-2">
-        <Label htmlFor="model">Model</Label>
+        <Label
+          htmlFor="model"
+          className="font-mono-num text-[0.7rem] uppercase tracking-[0.2em] text-foreground/65"
+        >
+          the pen
+        </Label>
         <select
           id="model"
           value={model}
           onChange={(e) => setModel(e.target.value as ModelId)}
           disabled={submitting}
-          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+          className="font-mono-num text-sm flex h-9 w-full rounded-md border border-input bg-paper/60 px-3 py-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {(Object.keys(MODELS_BY_PROVIDER) as Provider[]).map((p) => (
             <optgroup key={p} label={PROVIDER_LABELS[p]}>
@@ -98,19 +115,29 @@ export function GenerateForm({
           ))}
         </select>
       </div>
-      <Button
-        type="submit"
-        size="lg"
-        disabled={submitting || submissionsReady === 0}
-      >
-        {submitting
-          ? "Starting…"
-          : submissionsReady === 0
-          ? "No submissions to grade"
-          : `Generate Feedback for ${submissionsReady} submission${
-              submissionsReady === 1 ? "" : "s"
-            }`}
-      </Button>
+
+      <div className="border-t border-rule pt-5">
+        <Button
+          type="submit"
+          size="lg"
+          disabled={submitting || noSubs}
+          className="group relative h-12 w-full justify-between overflow-hidden text-base"
+        >
+          <span className="font-display text-lg italic">
+            {submitting ? "Beginning…" : noSubs ? "No submissions to grade" : "Begin run"}
+          </span>
+          {!submitting && !noSubs ? (
+            <span className="font-mono-num text-xs tracking-widest opacity-80 transition-transform group-hover:translate-x-1">
+              {submissionsReady.toString().padStart(2, "0")}&nbsp;students&nbsp;→
+            </span>
+          ) : null}
+        </Button>
+        {!submitting && !noSubs ? (
+          <p className="mt-3 text-center font-display text-xs italic text-foreground/55">
+            this opens a new dossier you can edit before exporting
+          </p>
+        ) : null}
+      </div>
     </form>
   );
 }
