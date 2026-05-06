@@ -1,4 +1,5 @@
 import type {
+  ResponseCreateParamsNonStreaming,
   ResponseInputContent,
   ResponseInputItem,
 } from "openai/resources/responses/responses";
@@ -9,6 +10,12 @@ import type {
   RunnerArgs,
 } from "@/lib/generate";
 
+// Reasoning models (o3, o4-mini, gpt-5 family) burn output budget on internal
+// thinking before producing visible text, so they need a much larger
+// max_output_tokens than chat models. The `reasoning.effort` knob keeps cost
+// reasonable — "low" leaves headroom for the actual feedback paragraph.
+const REASONING_MODEL = /^(o\d|gpt-5)/;
+
 export async function runOpenAI(args: RunnerArgs): Promise<GenerateResult> {
   const { blocks, systemPrompt, model } = args;
   const openai = getOpenAI();
@@ -16,12 +23,19 @@ export async function runOpenAI(args: RunnerArgs): Promise<GenerateResult> {
   const content: ResponseInputContent[] = blocks.map(toOpenAIContent);
   const input: ResponseInputItem[] = [{ role: "user", content }];
 
-  const response = await openai.responses.create({
+  const isReasoning = REASONING_MODEL.test(model);
+
+  const params: ResponseCreateParamsNonStreaming = {
     model,
     instructions: systemPrompt,
     input,
-    max_output_tokens: 1024,
-  });
+    max_output_tokens: isReasoning ? 8192 : 1024,
+  };
+  if (isReasoning) {
+    params.reasoning = { effort: "low" };
+  }
+
+  const response = await openai.responses.create(params);
 
   return {
     feedback: response.output_text.trim(),
