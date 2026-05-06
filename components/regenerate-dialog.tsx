@@ -1,0 +1,131 @@
+"use client";
+
+import { useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  AVAILABLE_MODELS,
+  DEFAULT_MODEL,
+  MODELS_BY_PROVIDER,
+  PROVIDER_LABELS,
+  type ModelId,
+  type Provider,
+} from "@/lib/anthropic/cost";
+
+export function RegenerateDialog({
+  feedbackId,
+  currentModel,
+  disabled,
+  onStarted,
+}: {
+  feedbackId: string;
+  currentModel: string;
+  disabled?: boolean;
+  onStarted?: () => void;
+}) {
+  const initial = (AVAILABLE_MODELS as readonly string[]).includes(currentModel)
+    ? (currentModel as ModelId)
+    : DEFAULT_MODEL;
+  const [open, setOpen] = useState(false);
+  const [instructions, setInstructions] = useState("");
+  const [model, setModel] = useState<ModelId>(initial);
+  const [submitting, setSubmitting] = useState(false);
+
+  async function regenerate() {
+    setSubmitting(true);
+    try {
+      const res = await fetch(`/api/feedback/${feedbackId}/regenerate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          additionalInstructions: instructions.trim() || undefined,
+          model,
+        }),
+      });
+      if (!res.ok) {
+        const err = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(err.error ?? `request failed (${res.status})`);
+      }
+      toast.success("Regenerating…");
+      onStarted?.();
+      setOpen(false);
+      setInstructions("");
+    } catch (err) {
+      toast.error(
+        `Could not regenerate: ${
+          err instanceof Error ? err.message : "unknown"
+        }`,
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger render={<Button variant="outline" size="sm" disabled={disabled} />}>
+        Regenerate
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Regenerate feedback</DialogTitle>
+          <DialogDescription>
+            Optionally add extra instructions for this student. Leave blank to
+            re-run with the same focus.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-2">
+          <Label htmlFor="regen-instructions">Additional instructions</Label>
+          <Textarea
+            id="regen-instructions"
+            rows={4}
+            placeholder="e.g., be more critical of their assumptions section"
+            value={instructions}
+            onChange={(e) => setInstructions(e.target.value)}
+            disabled={submitting}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="regen-model">Model</Label>
+          <select
+            id="regen-model"
+            value={model}
+            onChange={(e) => setModel(e.target.value as ModelId)}
+            disabled={submitting}
+            className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {(Object.keys(MODELS_BY_PROVIDER) as Provider[]).map((p) => (
+              <optgroup key={p} label={PROVIDER_LABELS[p]}>
+                {MODELS_BY_PROVIDER[p].map((m) => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        </div>
+        <DialogFooter>
+          <DialogClose render={<Button variant="ghost" disabled={submitting} />}>
+            Cancel
+          </DialogClose>
+          <Button onClick={regenerate} disabled={submitting}>
+            {submitting ? "Submitting…" : "Regenerate"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

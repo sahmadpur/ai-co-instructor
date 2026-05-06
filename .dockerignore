@@ -1,0 +1,10 @@
+.git
+.next
+node_modules
+local.db
+.env*
+!.env.example
+*.log
+.DS_Store
+Dockerfile.dev
+docker-compose.yml

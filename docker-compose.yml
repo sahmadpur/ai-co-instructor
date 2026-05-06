@@ -1,0 +1,26 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: classroom-feedback-dev
+    user: "501:20"
+    working_dir: /app
+    volumes:
+      - .:/app
+      - npm-cache:/tmp/.npm
+    environment:
+      HOME: /tmp
+      NPM_CONFIG_CACHE: /tmp/.npm
+      NODE_ENV: development
+      NEXT_TELEMETRY_DISABLED: "1"
+    env_file:
+      - path: .env.local
+        required: false
+    ports:
+      - "3000:3000"
+    command: ["npm", "run", "dev"]
+    init: true
+
+volumes:
+  npm-cache:
