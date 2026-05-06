@@ -1,12 +1,16 @@
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
+import { createClient } from "@libsql/client";
+import { drizzle } from "drizzle-orm/libsql";
 import * as schema from "./schema";
 
-const dbPath = process.env.DATABASE_URL?.replace(/^file:/, "") ?? "./local.db";
+// libSQL accepts both `file:./local.db` (local SQLite) and `libsql://…`
+// (hosted Turso) through the same client, so dev and prod share one driver.
+const url = process.env.DATABASE_URL ?? "file:./local.db";
+const authToken = process.env.DATABASE_AUTH_TOKEN;
 
-const sqlite = new Database(dbPath);
-sqlite.pragma("journal_mode = WAL");
-sqlite.pragma("foreign_keys = ON");
+const client = createClient({
+  url,
+  authToken: authToken && authToken.length > 0 ? authToken : undefined,
+});
 
-export const db = drizzle(sqlite, { schema });
+export const db = drizzle(client, { schema });
 export { schema };
