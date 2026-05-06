@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { getOwnerUserIds } from "@/lib/owner";
 import { loadExportData } from "@/lib/exports/types";
 import { exportExcel } from "@/lib/exports/excel";
 import { exportCsv } from "@/lib/exports/csv";
@@ -19,7 +20,8 @@ export async function GET(
   if (!VALID.has(format)) {
     return NextResponse.json({ error: "invalid format" }, { status: 400 });
   }
-  const data = await loadExportData(runId, session.user.id);
+  const ownerIds = await getOwnerUserIds(session);
+  const data = await loadExportData(runId, ownerIds);
   if (!data) {
     return NextResponse.json({ error: "not found" }, { status: 404 });
   }

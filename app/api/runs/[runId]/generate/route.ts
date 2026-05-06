@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import pLimit from "p-limit";
 import { v4 as uuid } from "uuid";
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db, schema } from "@/lib/db";
+import { getOwnerUserIds } from "@/lib/owner";
 import { listSubmissions } from "@/lib/google/classroom";
 import { classifySubmission } from "@/lib/google/submissions";
 import { generateForSubmission } from "@/lib/generate";
@@ -21,9 +22,10 @@ export async function POST(
   }
   const token = session.accessToken;
   const { runId } = await ctx.params;
+  const ownerIds = await getOwnerUserIds(session);
 
   const run = await db.query.runs.findFirst({
-    where: and(eq(schema.runs.id, runId), eq(schema.runs.userId, session.user.id)),
+    where: and(eq(schema.runs.id, runId), inArray(schema.runs.userId, ownerIds)),
   });
   if (!run) {
     return NextResponse.json({ error: "not found" }, { status: 404 });

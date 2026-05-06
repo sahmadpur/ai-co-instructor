@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { eq, and, sum } from "drizzle-orm";
+import { eq, and, sum, inArray } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db, schema } from "@/lib/db";
+import { getOwnerUserIds } from "@/lib/owner";
 
 export async function GET(
   _req: Request,
@@ -13,9 +14,10 @@ export async function GET(
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
   const { runId } = await ctx.params;
+  const ownerIds = await getOwnerUserIds(session);
 
   const run = await db.query.runs.findFirst({
-    where: and(eq(schema.runs.id, runId), eq(schema.runs.userId, session.user.id)),
+    where: and(eq(schema.runs.id, runId), inArray(schema.runs.userId, ownerIds)),
   });
   if (!run) {
     return NextResponse.json({ error: "not found" }, { status: 404 });
@@ -48,8 +50,9 @@ export async function PATCH(
   if (!parsed.success) {
     return NextResponse.json({ error: "invalid body" }, { status: 400 });
   }
+  const ownerIds = await getOwnerUserIds(session);
   const run = await db.query.runs.findFirst({
-    where: and(eq(schema.runs.id, runId), eq(schema.runs.userId, session.user.id)),
+    where: and(eq(schema.runs.id, runId), inArray(schema.runs.userId, ownerIds)),
   });
   if (!run) {
     return NextResponse.json({ error: "not found" }, { status: 404 });

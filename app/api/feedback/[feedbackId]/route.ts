@@ -3,6 +3,7 @@ import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db, schema } from "@/lib/db";
+import { getOwnerUserIds } from "@/lib/owner";
 
 const Body = z.object({
   editedFeedback: z.string().nullable(),
@@ -32,7 +33,8 @@ export async function PATCH(
   const run = await db.query.runs.findFirst({
     where: eq(schema.runs.id, row.runId),
   });
-  if (!run || run.userId !== session.user.id) {
+  const ownerIds = await getOwnerUserIds(session);
+  if (!run || !ownerIds.includes(run.userId)) {
     return NextResponse.json({ error: "not found" }, { status: 404 });
   }
   if (run.status === "confirmed") {

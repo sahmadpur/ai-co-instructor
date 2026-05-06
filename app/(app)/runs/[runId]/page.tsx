@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { eq, and, sum } from "drizzle-orm";
+import { eq, and, sum, inArray } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db, schema } from "@/lib/db";
+import { getOwnerUserIds } from "@/lib/owner";
 import {
   FeedbackTable,
   type RunPayload,
@@ -26,9 +27,10 @@ export default async function RunPage({
   const session = await auth();
   if (!session?.user?.id) notFound();
   const { runId } = await params;
+  const ownerIds = await getOwnerUserIds(session);
 
   const run = await db.query.runs.findFirst({
-    where: and(eq(schema.runs.id, runId), eq(schema.runs.userId, session.user.id)),
+    where: and(eq(schema.runs.id, runId), inArray(schema.runs.userId, ownerIds)),
   });
   if (!run) notFound();
 

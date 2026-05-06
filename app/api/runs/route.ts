@@ -37,11 +37,17 @@ export async function POST(req: Request) {
   }
   const body = parsed.data;
   const token = session.accessToken;
-  const userId = session.user.id;
   const email = session.user.email ?? "unknown";
   const name = session.user.name ?? "unknown";
   const image = session.user.image ?? null;
   const now = new Date();
+
+  // Reuse the first user record for this email so runs stay attached to a
+  // single user.id even if the JWT sub drifts across sign-ins.
+  const existingByEmail = await db.query.users.findFirst({
+    where: eq(schema.users.email, email),
+  });
+  const userId = existingByEmail?.id ?? session.user.id;
 
   await db
     .insert(schema.users)

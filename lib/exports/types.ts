@@ -1,4 +1,4 @@
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 
 export interface ExportData {
@@ -8,10 +8,11 @@ export interface ExportData {
 
 export async function loadExportData(
   runId: string,
-  userId: string,
+  ownerIds: string[],
 ): Promise<ExportData | null> {
+  if (ownerIds.length === 0) return null;
   const run = await db.query.runs.findFirst({
-    where: and(eq(schema.runs.id, runId), eq(schema.runs.userId, userId)),
+    where: and(eq(schema.runs.id, runId), inArray(schema.runs.userId, ownerIds)),
   });
   if (!run) return null;
   const rows = await db.query.feedback.findMany({

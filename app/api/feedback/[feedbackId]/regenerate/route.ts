@@ -4,6 +4,7 @@ import { v4 as uuid } from "uuid";
 import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db, schema } from "@/lib/db";
+import { getOwnerUserIds } from "@/lib/owner";
 import { listSubmissions } from "@/lib/google/classroom";
 import { classifySubmission } from "@/lib/google/submissions";
 import { generateForSubmission } from "@/lib/generate";
@@ -41,7 +42,8 @@ export async function POST(
   const run = await db.query.runs.findFirst({
     where: eq(schema.runs.id, row.runId),
   });
-  if (!run || run.userId !== session.user.id) {
+  const ownerIds = await getOwnerUserIds(session);
+  if (!run || !ownerIds.includes(run.userId)) {
     return NextResponse.json({ error: "not found" }, { status: 404 });
   }
   if (run.status === "confirmed") {

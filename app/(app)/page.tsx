@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { desc, eq } from "drizzle-orm";
+import { desc, inArray } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { listCourses } from "@/lib/google/classroom";
 import { CourseList } from "@/components/course-list";
 import { db, schema } from "@/lib/db";
+import { getOwnerUserIds } from "@/lib/owner";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +25,8 @@ export default async function HomePage() {
     );
   }
 
+  const ownerIds = await getOwnerUserIds(session);
+
   const [coursesResult, pastRuns] = await Promise.all([
     listCourses(session.accessToken).then(
       (c) => ({ ok: true as const, courses: c }),
@@ -33,7 +36,7 @@ export default async function HomePage() {
       }),
     ),
     db.query.runs.findMany({
-      where: eq(schema.runs.userId, session.user.id),
+      where: inArray(schema.runs.userId, ownerIds),
       orderBy: [desc(schema.runs.createdAt)],
       limit: 20,
     }),
