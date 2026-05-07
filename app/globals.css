@@ -51,6 +51,9 @@
   --color-ink-faint: var(--ink-faint);
   --color-olive: var(--olive);
   --color-gold: var(--gold);
+  --color-ca-orange: var(--ca-orange);
+  --color-ca-pink: var(--ca-pink);
+  --color-ca-ink: var(--ca-ink);
   --radius-sm: calc(var(--radius) * 0.5);
   --radius-md: calc(var(--radius) * 0.75);
   --radius-lg: var(--radius);
@@ -61,90 +64,100 @@
 }
 
 :root {
-  /* "The Editor's Desk" palette — paper, ink, and a teacher's red pen. */
-  --paper: oklch(0.972 0.013 85);              /* warm ivory */
-  --paper-deep: oklch(0.945 0.018 82);         /* slightly darker — for cards on paper */
-  --ink: oklch(0.21 0.022 268);                /* deep blue-black */
-  --ink-soft: oklch(0.42 0.025 268);           /* secondary text */
-  --ink-faint: oklch(0.62 0.022 268);          /* tertiary */
-  --rule: oklch(0.86 0.025 80);                /* hairline taupe */
-  --rule-strong: oklch(0.74 0.030 75);
-  --marker: oklch(0.51 0.18 22);               /* claret — the red pen */
-  --marker-foreground: oklch(0.99 0.01 85);
-  --olive: oklch(0.55 0.075 110);              /* graded ink (success) */
-  --gold: oklch(0.74 0.13 75);                 /* highlight */
+  /* Code Academy palette — crisp white surfaces, near-black ink, brand red + yellow. */
+  --paper: #ffffff;                            /* page */
+  --paper-deep: #f4f6fa;                       /* card surface / muted */
+  --ink: #13171a;                              /* primary text — Code Academy near-black */
+  --ink-soft: #62717c;                         /* secondary text */
+  --ink-faint: #9ba5b5;                        /* tertiary */
+  --rule: #ebeef2;                             /* hairlines */
+  --rule-strong: #cdd4e0;                      /* stronger borders */
+  --marker: #e3152e;                           /* Code Academy red — accents, errors */
+  --marker-foreground: #ffffff;
+  --olive: #00a832;                            /* Code Academy green — success */
+  --gold: #ffc800;                             /* Code Academy yellow — highlight, CTA */
+
+  /* Code Academy brand gradient stops */
+  --ca-orange: #ff6900;
+  --ca-pink: #e3152e;
+  --ca-yellow: #ffc800;
+  --ca-magenta: #6c01ca;
+  --ca-teal: #00a832;
+  --ca-ink: #13171a;
 
   --background: var(--paper);
   --foreground: var(--ink);
-  --card: oklch(0.995 0.005 85);                /* nearly white card paper, slight warmth */
+  --card: #ffffff;
   --card-foreground: var(--ink);
-  --popover: oklch(0.99 0.008 85);
+  --popover: #ffffff;
   --popover-foreground: var(--ink);
   --primary: var(--ink);
-  --primary-foreground: var(--paper);
-  --secondary: oklch(0.93 0.020 80);
+  --primary-foreground: #ffffff;
+  --secondary: var(--paper-deep);
   --secondary-foreground: var(--ink);
-  --muted: oklch(0.945 0.018 82);
+  --muted: var(--paper-deep);
   --muted-foreground: var(--ink-soft);
-  --accent: oklch(0.92 0.024 78);
+  --accent: #fff7d6;                           /* subtle yellow tint */
   --accent-foreground: var(--ink);
-  --destructive: oklch(0.51 0.18 22);
+  --destructive: var(--marker);
   --border: var(--rule);
   --input: var(--rule);
-  --ring: oklch(0.55 0.10 30);
+  --ring: var(--marker);
   --chart-1: var(--marker);
   --chart-2: var(--olive);
   --chart-3: var(--gold);
-  --chart-4: oklch(0.45 0.05 250);
-  --chart-5: var(--ink);
+  --chart-4: var(--ca-magenta);
+  --chart-5: var(--ca-orange);
   --radius: 0.5rem;
   --sidebar: var(--paper);
   --sidebar-foreground: var(--ink);
   --sidebar-primary: var(--ink);
-  --sidebar-primary-foreground: var(--paper);
-  --sidebar-accent: oklch(0.93 0.020 80);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: var(--paper-deep);
   --sidebar-accent-foreground: var(--ink);
   --sidebar-border: var(--rule);
-  --sidebar-ring: var(--ring);
+  --sidebar-ring: var(--marker);
 }
 
 .dark {
-  --paper: oklch(0.18 0.012 70);
-  --paper-deep: oklch(0.22 0.014 70);
-  --ink: oklch(0.96 0.012 85);
-  --ink-soft: oklch(0.78 0.018 80);
-  --ink-faint: oklch(0.58 0.018 80);
-  --rule: oklch(0.32 0.020 75);
-  --rule-strong: oklch(0.42 0.022 75);
-  --marker: oklch(0.66 0.18 22);
-  --marker-foreground: oklch(0.16 0.01 80);
+  --paper: #13171a;                            /* Code Academy near-black */
+  --paper-deep: #1a1f24;
+  --ink: #f4f6fa;
+  --ink-soft: #9ba5b5;
+  --ink-faint: #62717c;
+  --rule: #2a3138;
+  --rule-strong: #3b434b;
+  --marker: #ff3a52;                           /* lifted red for dark surfaces */
+  --marker-foreground: #ffffff;
+  --gold: #ffc800;
+  --olive: #25cff2;                            /* readable cool accent on dark */
 
   --background: var(--paper);
   --foreground: var(--ink);
-  --card: oklch(0.22 0.014 72);
+  --card: #1a1f24;
   --card-foreground: var(--ink);
-  --popover: oklch(0.22 0.014 72);
+  --popover: #1a1f24;
   --popover-foreground: var(--ink);
   --primary: var(--ink);
   --primary-foreground: var(--paper);
-  --secondary: oklch(0.27 0.018 72);
+  --secondary: #232a31;
   --secondary-foreground: var(--ink);
-  --muted: oklch(0.25 0.016 72);
+  --muted: #1f262c;
   --muted-foreground: var(--ink-soft);
-  --accent: oklch(0.27 0.018 72);
-  --accent-foreground: var(--ink);
-  --destructive: oklch(0.66 0.18 22);
+  --accent: #2a2418;                           /* deep yellow tint */
+  --accent-foreground: var(--gold);
+  --destructive: var(--marker);
   --border: var(--rule);
   --input: var(--rule);
-  --ring: oklch(0.62 0.10 28);
+  --ring: var(--marker);
   --sidebar: var(--paper);
   --sidebar-foreground: var(--ink);
   --sidebar-primary: var(--ink);
   --sidebar-primary-foreground: var(--paper);
-  --sidebar-accent: oklch(0.27 0.018 72);
+  --sidebar-accent: #232a31;
   --sidebar-accent-foreground: var(--ink);
   --sidebar-border: var(--rule);
-  --sidebar-ring: oklch(0.62 0.10 28);
+  --sidebar-ring: var(--marker);
 }
 
 @layer base {
@@ -158,26 +171,32 @@
   body {
     background-color: var(--background);
     color: var(--foreground);
-    /* Layered paper texture: faint cross-rule and warm grain */
+    /* Code Academy: clean surface with one warm radial whisper from the brand gradient */
     background-image:
       radial-gradient(
-        ellipse 90% 60% at 15% 0%,
-        oklch(from var(--paper) calc(l + 0.02) c h / 0.9),
+        ellipse 60% 45% at 100% 0%,
+        rgba(255, 200, 0, 0.10),
         transparent 70%
       ),
       radial-gradient(
-        ellipse 70% 60% at 100% 100%,
-        oklch(from var(--marker) l c h / 0.05),
-        transparent 60%
-      ),
-      repeating-linear-gradient(
-        0deg,
-        transparent 0,
-        transparent 31px,
-        oklch(from var(--rule) l c h / 0.32) 31px,
-        oklch(from var(--rule) l c h / 0.32) 32px
+        ellipse 70% 50% at 0% 100%,
+        rgba(227, 21, 46, 0.06),
+        transparent 65%
       );
     background-attachment: fixed;
+  }
+  .dark body {
+    background-image:
+      radial-gradient(
+        ellipse 60% 45% at 100% 0%,
+        rgba(255, 200, 0, 0.06),
+        transparent 70%
+      ),
+      radial-gradient(
+        ellipse 70% 50% at 0% 100%,
+        rgba(255, 105, 0, 0.05),
+        transparent 65%
+      );
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-fraunces), ui-serif, Georgia, serif;
@@ -255,6 +274,51 @@
     background-size: 100% 1px, 1px 100%;
     background-position: center, center;
     background-repeat: no-repeat;
+  }
+
+  /* Code Academy brand gradient — orange→pink partnership accent */
+  .ca-gradient {
+    background-image: linear-gradient(95deg, var(--ca-orange) 0%, var(--ca-pink) 100%);
+  }
+  .ca-text-gradient {
+    background-image: linear-gradient(95deg, var(--ca-orange) 0%, var(--ca-pink) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .ca-rule {
+    background-image: linear-gradient(90deg, var(--ca-orange) 0%, var(--ca-pink) 100%);
+  }
+  /* Full rainbow gradient — matches the slanted "/" favicon palette */
+  .ca-spectrum {
+    background-image: linear-gradient(
+      90deg,
+      var(--ca-yellow) 0%,
+      var(--ca-orange) 25%,
+      var(--ca-pink) 55%,
+      var(--ca-magenta) 80%,
+      var(--ca-teal) 100%
+    );
+  }
+  .ca-spectrum-text {
+    background-image: linear-gradient(
+      95deg,
+      var(--ca-yellow) 0%,
+      var(--ca-orange) 25%,
+      var(--ca-pink) 55%,
+      var(--ca-magenta) 80%,
+      var(--ca-teal) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .ca-logo-chip {
+    background: transparent;
+  }
+  .dark .ca-logo-chip {
+    background: #ffffff;
+    border-radius: 0.375rem;
   }
 }
 

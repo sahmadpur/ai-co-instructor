@@ -9,7 +9,8 @@ export default auth((req) => {
     pathname === "/login" ||
     pathname.startsWith("/api/auth") ||
     pathname.startsWith("/_next") ||
-    pathname === "/favicon.ico";
+    pathname === "/favicon.ico" ||
+    /\.(?:ico|png|jpg|jpeg|gif|webp|svg|avif)$/i.test(pathname);
 
   if (isPublic) return NextResponse.next();
 

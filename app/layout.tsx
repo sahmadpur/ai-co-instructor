@@ -23,9 +23,9 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AI Co-Instructor",
+  title: "AI Co-Instructor · Code Academy",
   description:
-    "Write AI-assisted comments on Google Classroom submissions.",
+    "AI-assisted comments on Google Classroom submissions — a Code Academy initiative.",
 };
 
 export default function RootLayout({

@@ -1,23 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- ink-deep rounded tile -->
-  <rect width="64" height="64" rx="12" fill="#1F1D2C"/>
-
-  <!-- subtle paper-rule above the letters -->
-  <line x1="14" y1="20" x2="50" y2="20" stroke="#9A8E70" stroke-opacity="0.45" stroke-width="1"/>
-
-  <!-- CA in a confident serif, italic for editorial flavour -->
-  <text
-    x="32"
-    y="44"
-    text-anchor="middle"
-    font-family="'Times New Roman', Georgia, serif"
-    font-size="34"
-    font-weight="700"
-    font-style="italic"
-    fill="#F2EBDB"
-    letter-spacing="-0.5"
-  >CA</text>
-
-  <!-- marker-red rule (the teacher's red pen) -->
-  <rect x="14" y="50" width="36" height="3" rx="1.5" fill="#D4493B"/>
+  <defs>
+    <linearGradient id="ca-spectrum" x1="32" y1="6" x2="32" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffc800"/>
+      <stop offset="22%" stop-color="#ff6900"/>
+      <stop offset="48%" stop-color="#e3152e"/>
+      <stop offset="74%" stop-color="#6c01ca"/>
+      <stop offset="100%" stop-color="#00a832"/>
+    </linearGradient>
+  </defs>
+  <!-- Slanted "/" — Code Academy mark -->
+  <path
+    d="M 42 6 L 50 6 L 22 58 L 14 58 Z"
+    fill="url(#ca-spectrum)"
+  />
 </svg>

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import { auth, signIn } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -23,17 +24,8 @@ export default async function LoginPage({
       </div>
 
       <section className="relative hidden flex-1 flex-col justify-between p-14 md:flex">
-        <div className="flex items-center gap-3 text-sm">
-          <span className="font-mono-num small-caps text-foreground/70">
-            est.&nbsp;mmxxvi
-          </span>
-          <span className="h-px w-12 bg-rule-strong/80" />
-          <span className="tracking-eyebrow text-foreground/60">No.&nbsp;01</span>
-        </div>
-
         <div className="space-y-10">
           <div className="space-y-1">
-            <p className="tracking-eyebrow text-foreground/60">a private workshop for</p>
             <h1 className="font-display text-[clamp(3.4rem,7.5vw,6.5rem)] leading-[0.95] tracking-tight">
               <span className="block">The thoughtful</span>
               <span className="block italic font-light">teacher&rsquo;s</span>
@@ -43,6 +35,12 @@ export default async function LoginPage({
               </span>
               <span className="block">by hand.</span>
             </h1>
+            <div className="flex items-center gap-3 pt-3">
+              <span aria-hidden className="ca-rule block h-[3px] w-12 rounded-full" />
+              <span className="font-mono-num text-[0.7rem] uppercase tracking-[0.22em] text-foreground/65">
+                Gələcəyə&nbsp;buradan&nbsp;keç
+              </span>
+            </div>
           </div>
 
           <div className="flex max-w-md items-start gap-4 border-l-2 border-foreground/30 pl-5 text-[0.95rem] leading-relaxed text-foreground/75">
@@ -63,17 +61,36 @@ export default async function LoginPage({
             <p className="tracking-eyebrow">vol. one</p>
             <p className="font-mono-num">classroom · drive · claude</p>
           </div>
-          <div className="font-display text-2xl italic">— S.A.</div>
+          <div className="space-y-1 text-right">
+            <p className="font-display text-2xl italic">— S.A.</p>
+            <p className="font-mono-num text-[0.65rem] uppercase tracking-[0.22em]">
+              <span className="text-foreground/45">an initiative of</span>{" "}
+              <span className="ca-text-gradient font-semibold">Code Academy</span>
+            </p>
+          </div>
         </div>
       </section>
 
       <aside className="relative flex w-full flex-col justify-center p-8 md:w-[42rem] md:border-l md:border-rule/70 md:bg-card md:p-14">
         <div className="anim-fade-up mx-auto flex w-full max-w-md flex-col gap-10">
           <header className="space-y-3">
-            <div className="flex items-center gap-3">
-              <span className="block h-px flex-1 bg-rule-strong/70 anim-draw-rule" />
-              <span className="tracking-eyebrow text-foreground/60">colophon</span>
-              <span className="block h-px flex-1 bg-rule-strong/70 anim-draw-rule" />
+            <div className="flex flex-col items-center gap-3">
+              <span className="ca-logo-chip flex w-full items-center justify-center rounded-md px-6 py-4">
+                <Image
+                  src="/code-academy-logo.webp"
+                  alt="Code Academy"
+                  width={3132}
+                  height={783}
+                  priority
+                  unoptimized
+                  className="block h-auto w-full"
+                />
+              </span>
+              <div className="flex w-full items-center gap-3">
+                <span className="block h-px flex-1 bg-rule-strong/70 anim-draw-rule" />
+                <span className="tracking-eyebrow text-foreground/60">Code&nbsp;Academy</span>
+                <span className="block h-px flex-1 bg-rule-strong/70 anim-draw-rule" />
+              </div>
             </div>
             <h2 className="font-display text-3xl leading-tight">
               AI&nbsp;Co-Instructor
@@ -129,9 +146,13 @@ export default async function LoginPage({
           ) : null}
         </div>
 
-        <p className="mt-12 text-center font-display text-xs italic text-foreground/45">
-          a single-teacher edition
-        </p>
+        <div className="mt-12 flex items-center justify-center gap-3 text-foreground/45">
+          <span aria-hidden className="ca-rule block h-[2px] w-8 rounded-full opacity-80" />
+          <p className="text-center font-display text-xs italic">
+            a single-teacher edition · Code&nbsp;Academy
+          </p>
+          <span aria-hidden className="ca-rule block h-[2px] w-8 rounded-full opacity-80" />
+        </div>
       </aside>
     </main>
   );
