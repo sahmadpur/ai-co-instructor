@@ -4,22 +4,35 @@ import { Progress as ProgressPrimitive } from "@base-ui/react/progress"
 
 import { cn } from "@/lib/utils"
 
+type ProgressProps = Omit<ProgressPrimitive.Root.Props, "value"> & {
+  value?: ProgressPrimitive.Root.Props["value"]
+  indeterminate?: boolean
+}
+
 function Progress({
   className,
   children,
   value,
+  indeterminate,
   ...props
-}: ProgressPrimitive.Root.Props) {
+}: ProgressProps) {
   return (
     <ProgressPrimitive.Root
-      value={value}
+      value={indeterminate ? null : value ?? null}
       data-slot="progress"
       className={cn("flex flex-wrap gap-3", className)}
       {...props}
     >
       {children}
       <ProgressTrack>
-        <ProgressIndicator />
+        {indeterminate ? (
+          <span
+            aria-hidden
+            className="absolute inset-y-0 left-0 w-1/3 rounded-full bg-primary anim-progress"
+          />
+        ) : (
+          <ProgressIndicator />
+        )}
       </ProgressTrack>
     </ProgressPrimitive.Root>
   )

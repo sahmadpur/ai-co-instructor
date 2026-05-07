@@ -103,8 +103,14 @@ export function FeedbackTable({
     ).length;
     const edited = rows.filter((r) => r.status === "edited").length;
     const failed = rows.filter((r) => r.status === "failed").length;
-    return { total, done, edited, failed };
-  }, [rows]);
+    const rewriting =
+      run.status === "generating"
+        ? 0
+        : rows.filter(
+            (r) => r.status === "generating" && r.aiFeedback != null,
+          ).length;
+    return { total, done, edited, failed, rewriting };
+  }, [rows, run.status]);
 
   function updateRow(next: FeedbackRowData) {
     setRows((rs) => rs.map((r) => (r.id === next.id ? next : r)));
@@ -145,9 +151,9 @@ export function FeedbackTable({
         <div className="paper-card space-y-3 rounded-lg p-5">
           <div className="flex items-baseline justify-between gap-4">
             <div>
-              <div className="tracking-eyebrow text-foreground/55">in press</div>
+              <div className="tracking-eyebrow text-foreground/55">writing</div>
               <div className="font-display text-lg italic">
-                The AI is writing your feedback…
+                The AI is writing your comments…
               </div>
             </div>
             <div className="font-mono-num text-sm tabular-nums">
@@ -162,6 +168,17 @@ export function FeedbackTable({
             className="h-1.5"
           />
         </div>
+      ) : counts.rewriting > 0 ? (
+        <div className="paper-card flex items-center gap-4 rounded-lg p-4">
+          <span className="anim-nib block h-2 w-2 shrink-0 rounded-full bg-marker" />
+          <div className="flex-1 space-y-2">
+            <div className="font-display text-sm italic text-foreground/85">
+              Rewriting {counts.rewriting} comment
+              {counts.rewriting === 1 ? "" : "s"}…
+            </div>
+            <Progress indeterminate className="h-1" />
+          </div>
+        </div>
       ) : null}
 
       {locked && run.confirmedAt ? (
@@ -170,7 +187,7 @@ export function FeedbackTable({
             ✓
           </span>
           <div className="space-y-1">
-            <div className="tracking-eyebrow text-foreground/65">filed & locked</div>
+            <div className="tracking-eyebrow text-foreground/65">done & locked</div>
             <div className="font-display text-base">
               Confirmed on{" "}
               <span className="italic">
@@ -179,7 +196,7 @@ export function FeedbackTable({
                   timeStyle: "short",
                 })}
               </span>
-              . Feedback is read-only — export below.
+              . Comments are read-only — export below.
             </div>
           </div>
         </div>
@@ -203,7 +220,7 @@ export function FeedbackTable({
                   submission
                 </TableHead>
                 <TableHead className="font-mono-num text-[0.65rem] uppercase tracking-[0.2em] text-foreground/55 px-4 py-3">
-                  feedback
+                  comment
                 </TableHead>
                 <TableHead className="font-mono-num text-[0.65rem] uppercase tracking-[0.2em] text-foreground/55 px-4 py-3">
                   state
@@ -230,7 +247,7 @@ export function FeedbackTable({
 
       <div className="flex flex-wrap items-center justify-between gap-5 border-t-2 border-rule-strong/60 pt-6">
         <div className="space-y-1">
-          <div className="tracking-eyebrow text-foreground/55">running tab</div>
+          <div className="tracking-eyebrow text-foreground/55">running cost</div>
           <div className="flex items-baseline gap-2">
             <span className="font-display text-3xl tabular-nums">
               ${totalCostUsd.toFixed(4)}
@@ -250,7 +267,7 @@ export function FeedbackTable({
               className="group h-11 gap-3"
             >
               <span className="font-display text-base italic">
-                {confirming ? "Confirming…" : "Confirm & file"}
+                {confirming ? "Confirming…" : "Confirm & lock"}
               </span>
               {!confirming ? (
                 <span aria-hidden className="font-mono-num text-xs tracking-widest opacity-80 transition-transform group-hover:translate-x-1">

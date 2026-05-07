@@ -74,7 +74,7 @@ export function GenerateForm({
           htmlFor="feedback-focus"
           className="font-mono-num text-[0.7rem] uppercase tracking-[0.2em] text-foreground/65"
         >
-          marginal note <span className="font-display normal-case italic text-foreground/45">(optional)</span>
+          note <span className="font-display normal-case italic text-foreground/45">(optional)</span>
         </Label>
         <Textarea
           id="feedback-focus"
@@ -95,7 +95,7 @@ export function GenerateForm({
           htmlFor="model"
           className="font-mono-num text-[0.7rem] uppercase tracking-[0.2em] text-foreground/65"
         >
-          the pen
+          model
         </Label>
         <select
           id="model"
@@ -124,7 +124,7 @@ export function GenerateForm({
           className="group relative h-12 w-full justify-between overflow-hidden text-base"
         >
           <span className="font-display text-lg italic">
-            {submitting ? "Beginning…" : noSubs ? "No submissions to grade" : "Begin run"}
+            {submitting ? "Starting…" : noSubs ? "No submissions to grade" : "Start run"}
           </span>
           {!submitting && !noSubs ? (
             <span className="font-mono-num text-xs tracking-widest opacity-80 transition-transform group-hover:translate-x-1">
@@ -134,7 +134,7 @@ export function GenerateForm({
         </Button>
         {!submitting && !noSubs ? (
           <p className="mt-3 text-center font-display text-xs italic text-foreground/55">
-            this opens a new dossier you can edit before exporting
+            this starts a new run you can edit before exporting
           </p>
         ) : null}
       </div>

@@ -32,7 +32,7 @@ export default async function AppLayout({
               <span className="text-foreground/85">Co-Instructor</span>
             </span>
             <span className="hidden font-mono-num text-[0.65rem] uppercase tracking-[0.22em] text-foreground/45 sm:block">
-              · the editor&rsquo;s desk
+              · classroom comments
             </span>
           </Link>
 
@@ -40,7 +40,7 @@ export default async function AppLayout({
             <div className="hidden items-center gap-3 text-right sm:flex">
               <div className="leading-tight">
                 <div className="font-display text-sm italic text-foreground/85">
-                  {session.user.name ?? "Editor"}
+                  {session.user.name ?? "Teacher"}
                 </div>
                 <div className="font-mono-num text-[0.7rem] uppercase tracking-widest text-foreground/55">
                   {session.user.email}
@@ -78,7 +78,7 @@ export default async function AppLayout({
             vol. one · {new Date().getFullYear()}
           </span>
           <span className="font-display italic">
-            an assistive desk for thoughtful feedback
+            comments on student work, written with AI assistance
           </span>
           <span className="font-mono-num uppercase tracking-[0.22em] hidden sm:block">
             read-only

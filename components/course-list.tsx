@@ -6,7 +6,7 @@ export function CourseList({ courses }: { courses: ClassroomCourse[] }) {
     return (
       <div className="rounded-lg border border-dashed border-rule-strong/60 bg-card/40 p-12 text-center">
         <p className="font-display text-2xl italic text-foreground/55">
-          No active classes found.
+          No active groups found.
         </p>
         <p className="mt-2 font-mono-num text-xs uppercase tracking-[0.2em] text-foreground/45">
           check google classroom
@@ -27,7 +27,7 @@ export function CourseList({ courses }: { courses: ClassroomCourse[] }) {
           </div>
 
           <div className="flex flex-1 flex-col gap-3">
-            <div className="tracking-eyebrow text-foreground/55">class</div>
+            <div className="tracking-eyebrow text-foreground/55">group</div>
             <h3 className="font-display text-2xl leading-tight tracking-tight pr-12">
               {course.name}
             </h3>
@@ -44,7 +44,7 @@ export function CourseList({ courses }: { courses: ClassroomCourse[] }) {
 
           <div className="mt-8 flex items-center justify-between border-t border-rule pt-4">
             <span className="font-mono-num text-[0.7rem] uppercase tracking-[0.2em] text-foreground/55 group-hover:text-foreground transition-colors">
-              open ledger
+              open group
             </span>
             <span
               aria-hidden

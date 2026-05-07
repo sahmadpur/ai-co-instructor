@@ -44,18 +44,18 @@ export default async function AssignmentPage({
   return (
     <div className="space-y-12">
       <nav aria-label="breadcrumb" className="anim-fade flex flex-wrap items-center gap-2 font-mono-num text-[0.7rem] uppercase tracking-[0.2em] text-foreground/55">
-        <Link href="/" className="hover:text-foreground">classes</Link>
+        <Link href="/" className="hover:text-foreground">groups</Link>
         <span className="font-display text-base italic text-foreground/35">/</span>
         <Link href={`/courses/${courseId}`} className="hover:text-foreground truncate max-w-[18rem]">
           {course.name}
         </Link>
         <span className="font-display text-base italic text-foreground/35">/</span>
-        <span className="text-foreground">assignment</span>
+        <span className="text-foreground">task</span>
       </nav>
 
       <header className="anim-fade-up space-y-6 border-b border-rule-strong/60 pb-10">
         <div className="flex items-center gap-3">
-          <span className="tracking-eyebrow text-foreground/55">an assignment from</span>
+          <span className="tracking-eyebrow text-foreground/55">a task from</span>
           <span className="font-display italic text-foreground/65">
             {course.name}
           </span>
@@ -75,7 +75,7 @@ export default async function AssignmentPage({
         <article className="space-y-4">
           <div className="flex items-center gap-3">
             <span className="tracking-eyebrow text-foreground/55">
-              the brief
+              task description
             </span>
             <span className="block h-px flex-1 bg-rule" />
           </div>
@@ -92,7 +92,7 @@ export default async function AssignmentPage({
                 No description in Classroom.
               </p>
               <p className="mt-1 font-mono-num text-xs uppercase tracking-[0.2em] text-foreground/40">
-                the AI will use the title as the brief
+                the AI will use the title as the task description
               </p>
             </div>
           )}
@@ -101,7 +101,7 @@ export default async function AssignmentPage({
         <article className="space-y-4">
           <div className="flex items-center gap-3">
             <span className="tracking-eyebrow text-foreground/55">
-              compose a run
+              start a run
             </span>
             <span className="block h-px flex-1 bg-rule" />
           </div>

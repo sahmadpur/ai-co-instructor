@@ -51,13 +51,13 @@ export default async function CoursePage({
           <span aria-hidden className="font-display text-base italic transition-transform group-hover:-translate-x-1">
             ←
           </span>
-          back to classes
+          back to groups
         </Link>
       </nav>
 
       <header className="anim-fade-up grid gap-8 border-b border-rule-strong/60 pb-10 lg:grid-cols-[1fr_auto] lg:items-end">
         <div className="space-y-4">
-          <div className="tracking-eyebrow text-foreground/55">a class</div>
+          <div className="tracking-eyebrow text-foreground/55">a group</div>
           <h1 className="font-display text-[clamp(2.4rem,5vw,4rem)] leading-[1.02] tracking-tight">
             {course.name}
           </h1>
@@ -69,7 +69,7 @@ export default async function CoursePage({
         </div>
 
         <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-rule-strong/60 bg-rule/60 lg:min-w-[18rem]">
-          <Stat label="assignments" value={assignments.length} />
+          <Stat label="tasks" value={assignments.length} />
           <Stat label="dated" value={withDueDate} />
         </dl>
       </header>
@@ -81,7 +81,7 @@ export default async function CoursePage({
               §
             </span>
             <h2 className="font-display text-2xl tracking-tight">
-              The assignment ledger
+              Tasks
             </h2>
           </div>
           <p className="hidden text-right text-sm text-foreground/60 sm:block">

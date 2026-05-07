@@ -5,15 +5,9 @@ import { listCourses } from "@/lib/google/classroom";
 import { CourseList } from "@/components/course-list";
 import { db, schema } from "@/lib/db";
 import { getOwnerUserIds } from "@/lib/owner";
+import { RUN_STATUS_LABEL, type RunStatus } from "@/lib/status-labels";
 
 export const dynamic = "force-dynamic";
-
-const STATUS_LABEL: Record<string, string> = {
-  draft: "draft",
-  generating: "in press",
-  review: "in review",
-  confirmed: "filed",
-};
 
 export default async function HomePage() {
   const session = await auth();
@@ -62,21 +56,20 @@ export default async function HomePage() {
             </span>
           </div>
           <h1 className="font-display text-[clamp(2.6rem,5.5vw,4.5rem)] leading-[1.02] tracking-tight">
-            <span className="block">Good day, editor.</span>
+            <span className="block">Welcome back.</span>
             <span className="block italic font-light text-foreground/75">
-              your desk is ready.
+              ready when you are.
             </span>
           </h1>
           <p className="max-w-xl text-base leading-relaxed text-foreground/70">
-            Choose a class to open its assignment ledger. Past dossiers are
-            archived below — every edit, model run, and exported file remains
-            yours.
+            Pick a group to see its tasks. Past runs are listed below — every
+            edit, model run, and exported file is kept.
           </p>
         </div>
 
         <dl className="grid w-full grid-cols-2 gap-px overflow-hidden rounded-lg border border-rule-strong/60 bg-rule/60 lg:w-auto lg:min-w-[20rem]">
-          <Stat label="classes" value={courseCount} suffix={courseCount === 1 ? "class" : "classes"} />
-          <Stat label="dossiers" value={pastRuns.length} suffix={pastRuns.length === 1 ? "run" : "runs"} />
+          <Stat label="groups" value={courseCount} suffix={courseCount === 1 ? "group" : "groups"} />
+          <Stat label="runs" value={pastRuns.length} suffix={pastRuns.length === 1 ? "run" : "runs"} />
         </dl>
       </section>
 
@@ -84,14 +77,14 @@ export default async function HomePage() {
         <SectionHeader
           number="i"
           eyebrow="part one"
-          title="Your classes"
-          subtitle="Pick a class to see its assignments and begin a new dossier."
+          title="Your groups"
+          subtitle="Pick a group to see its tasks and start a new run."
         />
         {coursesResult.ok ? (
           <CourseList courses={coursesResult.courses} />
         ) : (
           <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-6 text-sm text-destructive">
-            <div className="font-display text-lg italic">Couldn&rsquo;t load classes</div>
+            <div className="font-display text-lg italic">Couldn&rsquo;t load groups</div>
             <div className="mt-1 font-mono-num text-xs">{coursesResult.message}</div>
           </div>
         )}
@@ -102,8 +95,8 @@ export default async function HomePage() {
           <SectionHeader
             number="ii"
             eyebrow="part two"
-            title="The archive"
-            subtitle="Recent dossiers — chronologically, most recent on top."
+            title="Recent runs"
+            subtitle="Most recent on top."
           />
           <ol className="overflow-hidden rounded-lg border border-rule-strong/60 bg-card/40 paper-card divide-y divide-rule">
             {pastRuns.map((r, i) => (
@@ -195,7 +188,7 @@ function SectionHeader({
 }
 
 function RunStatus({ status }: { status: string }) {
-  const label = STATUS_LABEL[status] ?? status;
+  const label = RUN_STATUS_LABEL[status as RunStatus] ?? status;
   const isConfirmed = status === "confirmed";
   const isGenerating = status === "generating";
   return (

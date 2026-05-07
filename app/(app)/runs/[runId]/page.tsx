@@ -9,15 +9,10 @@ import {
   type RunPayload,
 } from "@/components/feedback-table";
 import type { FeedbackRowData } from "@/components/feedback-row";
+import { RUN_STATUS_LABEL, type RunStatus } from "@/lib/status-labels";
+import { latestUsageByFeedback } from "@/lib/db/usage";
 
 export const dynamic = "force-dynamic";
-
-const STATUS_LABEL: Record<string, string> = {
-  draft: "draft",
-  generating: "in press",
-  review: "in review",
-  confirmed: "filed",
-};
 
 export default async function RunPage({
   params,
@@ -54,38 +49,44 @@ export default async function RunPage({
     assignmentTitle: run.assignmentTitle,
   };
 
-  const initialFeedback: FeedbackRowData[] = feedbackRows.map((r) => ({
-    id: r.id,
-    studentName: r.studentName,
-    studentEmail: r.studentEmail,
-    submissionType: r.submissionType,
-    submissionPreview: r.submissionPreview,
-    aiFeedback: r.aiFeedback,
-    editedFeedback: r.editedFeedback,
-    status: r.status,
-    errorMessage: r.errorMessage,
-    model: r.model,
-  }));
+  const usage = await latestUsageByFeedback(runId);
+  const initialFeedback: FeedbackRowData[] = feedbackRows.map((r) => {
+    const u = usage.get(r.id);
+    return {
+      id: r.id,
+      studentName: r.studentName,
+      studentEmail: r.studentEmail,
+      submissionType: r.submissionType,
+      submissionPreview: r.submissionPreview,
+      aiFeedback: r.aiFeedback,
+      editedFeedback: r.editedFeedback,
+      status: r.status,
+      errorMessage: r.errorMessage,
+      model: r.model,
+      lastInputTokens: u?.inputTokens ?? null,
+      lastOutputTokens: u?.outputTokens ?? null,
+    };
+  });
 
-  const statusLabel = STATUS_LABEL[run.status] ?? run.status;
+  const statusLabel = RUN_STATUS_LABEL[run.status as RunStatus] ?? run.status;
   const isConfirmed = run.status === "confirmed";
 
   return (
     <div className="space-y-10">
       <nav aria-label="breadcrumb" className="anim-fade flex flex-wrap items-center gap-2 font-mono-num text-[0.7rem] uppercase tracking-[0.2em] text-foreground/55">
-        <Link href="/" className="hover:text-foreground">classes</Link>
+        <Link href="/" className="hover:text-foreground">groups</Link>
         <span className="font-display text-base italic text-foreground/35">/</span>
         <Link href={`/courses/${run.courseId}`} className="hover:text-foreground truncate max-w-[16rem]">
           {run.courseName}
         </Link>
         <span className="font-display text-base italic text-foreground/35">/</span>
-        <span className="text-foreground">dossier</span>
+        <span className="text-foreground">run</span>
       </nav>
 
       <header className="anim-fade-up grid gap-8 border-b border-rule-strong/60 pb-8 lg:grid-cols-[1fr_auto] lg:items-end">
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <span className="tracking-eyebrow text-foreground/55">a dossier from</span>
+            <span className="tracking-eyebrow text-foreground/55">a run from</span>
             <span className="font-display italic text-foreground/65">
               {run.courseName}
             </span>

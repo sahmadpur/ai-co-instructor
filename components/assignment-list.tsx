@@ -21,10 +21,10 @@ export function AssignmentList({ assignments }: { assignments: CourseWork[] }) {
     return (
       <div className="rounded-lg border border-dashed border-rule-strong/60 bg-card/40 p-12 text-center">
         <p className="font-display text-2xl italic text-foreground/55">
-          No assignments yet.
+          No tasks yet.
         </p>
         <p className="mt-2 font-mono-num text-xs uppercase tracking-[0.2em] text-foreground/45">
-          this class is empty
+          this group is empty
         </p>
       </div>
     );

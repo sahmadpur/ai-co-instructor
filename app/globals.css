@@ -274,6 +274,10 @@
   from { transform: scaleX(0); }
   to { transform: scaleX(1); }
 }
+@keyframes ink-progress {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(300%); }
+}
 
 .anim-fade-up {
   animation: ink-fade-up 700ms cubic-bezier(.2,.7,.2,1) both;
@@ -287,6 +291,9 @@
 .anim-draw-rule {
   transform-origin: left center;
   animation: draw-rule 900ms cubic-bezier(.2,.7,.2,1) 200ms both;
+}
+.anim-progress {
+  animation: ink-progress 1.6s cubic-bezier(.4,0,.2,1) infinite;
 }
 
 @media print {

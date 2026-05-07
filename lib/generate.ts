@@ -1,5 +1,6 @@
 import * as XLSX from "xlsx";
 import mammoth from "mammoth";
+import * as cheerio from "cheerio";
 import { buildFeedbackPrompt } from "@/lib/anthropic/prompts";
 import { getProvider } from "@/lib/anthropic/cost";
 import { runAnthropic } from "@/lib/anthropic/generate";
@@ -18,6 +19,13 @@ const DOCX_MIME =
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 const GOOGLE_DOC_MIME = "application/vnd.google-apps.document";
 const GOOGLE_SHEET_MIME = "application/vnd.google-apps.spreadsheet";
+const HTML_MIMES = new Set(["text/html", "application/xhtml+xml"]);
+const SQL_MIMES = new Set(["application/sql", "text/x-sql", "text/sql"]);
+const PLAIN_MIMES = new Set([
+  "text/plain",
+  "application/octet-stream",
+  "",
+]);
 
 const MAX_TEXT_CHARS = 60_000;
 
@@ -159,10 +167,45 @@ async function fetchDriveBlock(
     };
   }
 
+  const ext = extensionFromName(meta.name);
+  const mime = meta.mimeType ?? "";
+
+  if (HTML_MIMES.has(mime) || ext === "html" || ext === "htm") {
+    const buf = await downloadFile(token, fileId);
+    return htmlToTextBlock(buf, meta.name);
+  }
+
+  if (SQL_MIMES.has(mime) || ext === "sql") {
+    const buf = await downloadFile(token, fileId);
+    return plainTextBlock(buf, meta.name, "SQL script");
+  }
+
+  if (ext === "rmd") {
+    const buf = await downloadFile(token, fileId);
+    return plainTextBlock(buf, meta.name, "R Markdown document");
+  }
+
+  if (ext === "r") {
+    const buf = await downloadFile(token, fileId);
+    return plainTextBlock(buf, meta.name, "R script");
+  }
+
+  if (PLAIN_MIMES.has(mime)) {
+    const buf = await downloadFile(token, fileId);
+    return plainTextBlock(buf, meta.name, "text file");
+  }
+
   return {
     kind: "text",
     text: `(Skipping "${meta.name}" — unsupported file type ${meta.mimeType}.)`,
   };
+}
+
+function extensionFromName(name: string | null | undefined): string {
+  if (!name) return "";
+  const dot = name.lastIndexOf(".");
+  if (dot < 0) return "";
+  return name.slice(dot + 1).toLowerCase();
 }
 
 function pdfBlock(buf: Buffer, filename: string): NormalizedBlock {
@@ -232,6 +275,58 @@ function xlsxToTextBlock(buf: Buffer, filename: string): NormalizedBlock {
       })`,
     };
   }
+}
+
+function htmlToTextBlock(buf: Buffer, filename: string): NormalizedBlock {
+  try {
+    const $ = cheerio.load(buf.toString("utf8"));
+    $("script, style, noscript, template").remove();
+    const body = $("body").first();
+    const raw = body.length > 0 ? body.text() : $.root().text();
+    const text = raw
+      .replace(/ /g, " ")
+      .replace(/[ \t]+/g, " ")
+      .replace(/\n[ \t]+/g, "\n")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+    if (!text) {
+      return {
+        kind: "text",
+        text: `(File "${filename}" appears to be empty.)`,
+      };
+    }
+    return {
+      kind: "text",
+      text: `Student's submission "${filename}" (HTML, text extracted):\n\n${truncate(
+        text,
+      )}`,
+    };
+  } catch (err) {
+    return {
+      kind: "text",
+      text: `(Could not parse "${filename}" as HTML: ${
+        err instanceof Error ? err.message : String(err)
+      })`,
+    };
+  }
+}
+
+function plainTextBlock(
+  buf: Buffer,
+  filename: string,
+  label: string,
+): NormalizedBlock {
+  const text = buf.toString("utf8").replace(/\r\n/g, "\n").trim();
+  if (!text) {
+    return {
+      kind: "text",
+      text: `(File "${filename}" appears to be empty.)`,
+    };
+  }
+  return {
+    kind: "text",
+    text: `Student's submission "${filename}" (${label}):\n\n${truncate(text)}`,
+  };
 }
 
 function truncate(s: string): string {

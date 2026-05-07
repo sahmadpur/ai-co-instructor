@@ -52,7 +52,7 @@ export default async function LoginPage({
                 important ones?&rdquo;
               </span>
               <br />
-              An assistive desk for reading every submission, choosing your
+              An AI assistant for reading every submission, choosing your
               words, and signing them as your own.
             </p>
           </div>
@@ -80,15 +80,15 @@ export default async function LoginPage({
             </h2>
             <p className="text-sm leading-relaxed text-foreground/70">
               Sign in with your Google&nbsp;Workspace account. We&rsquo;ll fetch
-              classes and submissions read-only — no writes back to Classroom,
+              groups and submissions read-only — no writes back to Classroom,
               no scores, no rubrics.
             </p>
           </header>
 
           <ul className="space-y-2 text-sm text-foreground/75">
             {[
-              ["i", "Pick a class, pick an assignment"],
-              ["ii", "Set the focus for your feedback"],
+              ["i", "Pick a group, pick a task"],
+              ["ii", "Set the focus for your comments"],
               ["iii", "Edit each line, then confirm"],
             ].map(([n, label]) => (
               <li key={n} className="flex items-baseline gap-3">

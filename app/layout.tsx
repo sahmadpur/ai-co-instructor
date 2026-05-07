@@ -23,9 +23,9 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AI Co-Instructor — The Editor's Desk",
+  title: "AI Co-Instructor",
   description:
-    "An editorial workspace for writing AI-assisted feedback on Google Classroom submissions.",
+    "Write AI-assisted comments on Google Classroom submissions.",
 };
 
 export default function RootLayout({

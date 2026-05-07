@@ -4,8 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Progress } from "@/components/ui/progress";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { RegenerateDialog } from "@/components/regenerate-dialog";
+import { commentStatusLabel } from "@/lib/status-labels";
 
 export type FeedbackRowData = {
   id: string;
@@ -18,34 +20,31 @@ export type FeedbackRowData = {
   status: "pending" | "generating" | "generated" | "edited" | "failed";
   errorMessage: string | null;
   model: string;
+  lastInputTokens?: number | null;
+  lastOutputTokens?: number | null;
 };
 
-const STATUS_CONFIG: Record<
+const STATUS_STYLE: Record<
   FeedbackRowData["status"],
-  { label: string; cls: string; dot: string }
+  { cls: string; dot: string }
 > = {
   pending: {
-    label: "queued",
     cls: "border-rule-strong text-foreground/55",
     dot: "bg-foreground/30",
   },
   generating: {
-    label: "in press",
     cls: "border-marker/40 bg-marker/10 text-marker",
     dot: "bg-marker anim-nib",
   },
   generated: {
-    label: "ai draft",
     cls: "border-foreground/30 text-foreground/75",
     dot: "bg-foreground/50",
   },
   edited: {
-    label: "edited",
     cls: "border-foreground/85 bg-foreground text-background",
     dot: "bg-marker",
   },
   failed: {
-    label: "failed",
     cls: "border-destructive/50 bg-destructive/10 text-destructive",
     dot: "bg-destructive",
   },
@@ -139,7 +138,9 @@ export function FeedbackRow({
   }
 
   const isBusy = row.status === "pending" || row.status === "generating";
-  const status = STATUS_CONFIG[row.status];
+  const style = STATUS_STYLE[row.status];
+  const hasPriorRun = row.aiFeedback != null;
+  const statusLabel = commentStatusLabel(row.status, { hasPriorRun });
 
   return (
     <TableRow className="border-b border-rule align-top">
@@ -177,9 +178,18 @@ export function FeedbackRow({
 
       <TableCell className="min-w-[26rem] py-5 align-top">
         {isBusy ? (
-          <div className="flex items-center gap-2 font-mono-num text-xs uppercase tracking-[0.18em] text-foreground/55">
-            <span className="anim-nib block h-2 w-2 rounded-full bg-marker" />
-            {row.status === "generating" ? "the AI is writing…" : "queued, awaiting pen…"}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 font-mono-num text-xs uppercase tracking-[0.18em] text-foreground/55">
+              <span className="anim-nib block h-2 w-2 rounded-full bg-marker" />
+              {row.status === "generating"
+                ? hasPriorRun
+                  ? "rewriting…"
+                  : "writing…"
+                : "waiting…"}
+            </div>
+            {row.status === "generating" ? (
+              <Progress indeterminate className="h-1" />
+            ) : null}
           </div>
         ) : row.status === "failed" ? (
           <div className="space-y-2 rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
@@ -220,11 +230,11 @@ export function FeedbackRow({
           <span
             className={[
               "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-mono-num text-[0.6rem] uppercase tracking-[0.18em]",
-              status.cls,
+              style.cls,
             ].join(" ")}
           >
-            <span className={`block h-1.5 w-1.5 rounded-full ${status.dot}`} />
-            {status.label}
+            <span className={`block h-1.5 w-1.5 rounded-full ${style.dot}`} />
+            {statusLabel}
           </span>
           {saving ? (
             <span className="font-mono-num text-[0.6rem] uppercase tracking-[0.18em] text-foreground/55">
@@ -239,6 +249,8 @@ export function FeedbackRow({
           <RegenerateDialog
             feedbackId={row.id}
             currentModel={row.model}
+            lastInputTokens={row.lastInputTokens}
+            lastOutputTokens={row.lastOutputTokens}
             disabled={locked || isBusy}
             onStarted={() =>
               onChange({ ...row, status: "generating", errorMessage: null })

@@ -4,6 +4,7 @@ import { eq, and, sum, inArray } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db, schema } from "@/lib/db";
 import { getOwnerUserIds } from "@/lib/owner";
+import { latestUsageByFeedback } from "@/lib/db/usage";
 
 export async function GET(
   _req: Request,
@@ -32,7 +33,17 @@ export async function GET(
     .where(eq(schema.apiLogs.runId, runId));
   const totalCostUsd = Number(costRow[0]?.total ?? 0);
 
-  return NextResponse.json({ run, feedback, totalCostUsd });
+  const usage = await latestUsageByFeedback(runId);
+  const enrichedFeedback = feedback.map((f) => {
+    const u = usage.get(f.id);
+    return {
+      ...f,
+      lastInputTokens: u?.inputTokens ?? null,
+      lastOutputTokens: u?.outputTokens ?? null,
+    };
+  });
+
+  return NextResponse.json({ run, feedback: enrichedFeedback, totalCostUsd });
 }
 
 const PatchBody = z.object({ action: z.literal("confirm") });

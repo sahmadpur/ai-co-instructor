@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,18 +20,26 @@ import {
   DEFAULT_MODEL,
   MODELS_BY_PROVIDER,
   PROVIDER_LABELS,
+  costUsd,
   type ModelId,
   type Provider,
 } from "@/lib/anthropic/cost";
 
+const COST_DELTA_USD = 0.05;
+const COST_RATIO = 2;
+
 export function RegenerateDialog({
   feedbackId,
   currentModel,
+  lastInputTokens,
+  lastOutputTokens,
   disabled,
   onStarted,
 }: {
   feedbackId: string;
   currentModel: string;
+  lastInputTokens?: number | null;
+  lastOutputTokens?: number | null;
   disabled?: boolean;
   onStarted?: () => void;
 }) {
@@ -41,6 +49,29 @@ export function RegenerateDialog({
   const [open, setOpen] = useState(false);
   const [instructions, setInstructions] = useState("");
   const [model, setModel] = useState<ModelId>(initial);
+  const [confirmingExpensive, setConfirmingExpensive] = useState(false);
+
+  const estimate = useMemo(() => {
+    if (!lastInputTokens || !lastOutputTokens) return null;
+    if (model === currentModel) return null;
+    const original = costUsd(lastInputTokens, lastOutputTokens, currentModel);
+    const next = costUsd(lastInputTokens, lastOutputTokens, model);
+    const ratio = original > 0 ? next / original : Infinity;
+    const delta = next - original;
+    const expensive =
+      next > original && (delta >= COST_DELTA_USD || ratio >= COST_RATIO);
+    return { original, next, ratio, delta, expensive };
+  }, [lastInputTokens, lastOutputTokens, model, currentModel]);
+
+  const needsConfirm = estimate?.expensive ?? false;
+
+  function handleClick() {
+    if (needsConfirm && !confirmingExpensive) {
+      setConfirmingExpensive(true);
+      return;
+    }
+    regenerate();
+  }
 
   function regenerate() {
     // Optimistically flip the row to "generating" and close immediately.
@@ -92,9 +123,9 @@ export function RegenerateDialog({
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <div className="tracking-eyebrow text-foreground/55">a second pass</div>
+          <div className="tracking-eyebrow text-foreground/55">rewrite</div>
           <DialogTitle className="font-display text-2xl tracking-tight">
-            Rewrite this feedback
+            Rewrite this comment
           </DialogTitle>
           <DialogDescription className="font-display italic text-foreground/65">
             Optionally add extra instructions for this student. Leave blank to
@@ -121,12 +152,15 @@ export function RegenerateDialog({
             htmlFor="regen-model"
             className="font-mono-num text-[0.7rem] uppercase tracking-[0.2em] text-foreground/65"
           >
-            the pen
+            model
           </Label>
           <select
             id="regen-model"
             value={model}
-            onChange={(e) => setModel(e.target.value as ModelId)}
+            onChange={(e) => {
+              setModel(e.target.value as ModelId);
+              setConfirmingExpensive(false);
+            }}
             className="font-mono-num text-sm flex h-9 w-full rounded-md border border-input bg-paper/60 px-3 py-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {(Object.keys(MODELS_BY_PROVIDER) as Provider[]).map((p) => (
@@ -139,11 +173,37 @@ export function RegenerateDialog({
               </optgroup>
             ))}
           </select>
+          {estimate ? (
+            <p
+              className={[
+                "font-mono-num text-[0.7rem] tabular-nums",
+                estimate.expensive ? "text-amber-600" : "text-foreground/55",
+              ].join(" ")}
+            >
+              ≈ ${estimate.next.toFixed(4)} with {model} (was $
+              {estimate.original.toFixed(4)} with {currentModel}
+              {estimate.next > estimate.original
+                ? ` — ${estimate.ratio.toFixed(1)}× more`
+                : estimate.next < estimate.original
+                ? ` — ${(estimate.original / estimate.next).toFixed(1)}× less`
+                : ""}
+              )
+            </p>
+          ) : null}
+          {needsConfirm ? (
+            <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-xs text-amber-700">
+              <span className="font-display italic">{model}</span> is materially
+              more expensive than the comment&rsquo;s original model. Click
+              rewrite again to confirm.
+            </div>
+          ) : null}
         </div>
         <DialogFooter>
           <DialogClose render={<Button variant="ghost" />}>Cancel</DialogClose>
-          <Button onClick={regenerate} className="font-display italic">
-            Rewrite
+          <Button onClick={handleClick} className="font-display italic">
+            {needsConfirm && confirmingExpensive
+              ? "Confirm rewrite at higher cost"
+              : "Rewrite"}
           </Button>
         </DialogFooter>
       </DialogContent>
