@@ -53,8 +53,15 @@ export function FeedbackTable({
 
   const locked = run.status === "confirmed";
 
+  const anyRowBusy = useMemo(
+    () =>
+      rows.some((r) => r.status === "pending" || r.status === "generating"),
+    [rows],
+  );
+  const shouldPoll = run.status === "generating" || anyRowBusy;
+
   useEffect(() => {
-    if (run.status !== "generating") return;
+    if (!shouldPoll) return;
     if (pollingRef.current) return;
     pollingRef.current = true;
     const interval = setInterval(async () => {
@@ -64,8 +71,15 @@ export function FeedbackTable({
         const data = (await res.json()) as RunResponse;
         setRows(data.feedback);
         setTotalCostUsd(data.totalCostUsd);
-        if (data.run.status !== "generating") {
+        const stillBusy =
+          data.run.status === "generating" ||
+          data.feedback.some(
+            (r) => r.status === "pending" || r.status === "generating",
+          );
+        if (data.run.status !== run.status) {
           setRun((r) => ({ ...r, status: data.run.status }));
+        }
+        if (!stillBusy) {
           clearInterval(interval);
           pollingRef.current = false;
         }
@@ -77,7 +91,7 @@ export function FeedbackTable({
       clearInterval(interval);
       pollingRef.current = false;
     };
-  }, [run.id, run.status]);
+  }, [run.id, run.status, shouldPoll]);
 
   const counts = useMemo(() => {
     const total = rows.length;

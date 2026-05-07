@@ -41,36 +41,39 @@ export function RegenerateDialog({
   const [open, setOpen] = useState(false);
   const [instructions, setInstructions] = useState("");
   const [model, setModel] = useState<ModelId>(initial);
-  const [submitting, setSubmitting] = useState(false);
 
-  async function regenerate() {
-    setSubmitting(true);
-    try {
-      const res = await fetch(`/api/feedback/${feedbackId}/regenerate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          additionalInstructions: instructions.trim() || undefined,
-          model,
-        }),
-      });
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(err.error ?? `request failed (${res.status})`);
+  function regenerate() {
+    // Optimistically flip the row to "generating" and close immediately.
+    // The LLM call runs server-side; polling in feedback-table picks up the
+    // result without blocking the dialog.
+    const body = JSON.stringify({
+      additionalInstructions: instructions.trim() || undefined,
+      model,
+    });
+    onStarted?.();
+    setOpen(false);
+    setInstructions("");
+    toast.success("Regenerating…");
+
+    void (async () => {
+      try {
+        const res = await fetch(`/api/feedback/${feedbackId}/regenerate`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body,
+        });
+        if (!res.ok) {
+          const err = (await res.json().catch(() => ({}))) as { error?: string };
+          throw new Error(err.error ?? `request failed (${res.status})`);
+        }
+      } catch (err) {
+        toast.error(
+          `Could not regenerate: ${
+            err instanceof Error ? err.message : "unknown"
+          }`,
+        );
       }
-      toast.success("Regenerating…");
-      onStarted?.();
-      setOpen(false);
-      setInstructions("");
-    } catch (err) {
-      toast.error(
-        `Could not regenerate: ${
-          err instanceof Error ? err.message : "unknown"
-        }`,
-      );
-    } finally {
-      setSubmitting(false);
-    }
+    })();
   }
 
   return (
@@ -111,7 +114,6 @@ export function RegenerateDialog({
             placeholder="e.g., be more critical of their assumptions section"
             value={instructions}
             onChange={(e) => setInstructions(e.target.value)}
-            disabled={submitting}
           />
         </div>
         <div className="space-y-2">
@@ -125,7 +127,6 @@ export function RegenerateDialog({
             id="regen-model"
             value={model}
             onChange={(e) => setModel(e.target.value as ModelId)}
-            disabled={submitting}
             className="font-mono-num text-sm flex h-9 w-full rounded-md border border-input bg-paper/60 px-3 py-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {(Object.keys(MODELS_BY_PROVIDER) as Provider[]).map((p) => (
@@ -140,11 +141,9 @@ export function RegenerateDialog({
           </select>
         </div>
         <DialogFooter>
-          <DialogClose render={<Button variant="ghost" disabled={submitting} />}>
-            Cancel
-          </DialogClose>
-          <Button onClick={regenerate} disabled={submitting} className="font-display italic">
-            {submitting ? "Submitting…" : "Rewrite"}
+          <DialogClose render={<Button variant="ghost" />}>Cancel</DialogClose>
+          <Button onClick={regenerate} className="font-display italic">
+            Rewrite
           </Button>
         </DialogFooter>
       </DialogContent>
