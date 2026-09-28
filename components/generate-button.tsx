@@ -6,13 +6,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import {
-  DEFAULT_MODEL,
-  MODELS_BY_PROVIDER,
-  PROVIDER_LABELS,
-  type ModelId,
-  type Provider,
-} from "@/lib/anthropic/cost";
+import { DEFAULT_MODEL } from "@/lib/anthropic/cost";
+import { ModelSelect } from "@/components/model-select";
 
 export function GenerateForm({
   courseId,
@@ -30,7 +25,7 @@ export function GenerateForm({
   submissionsReady: number;
 }) {
   const [feedbackFocus, setFeedbackFocus] = useState("");
-  const [model, setModel] = useState<ModelId>(DEFAULT_MODEL);
+  const [model, setModel] = useState<string>(DEFAULT_MODEL);
   const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
 
@@ -97,23 +92,12 @@ export function GenerateForm({
         >
           model
         </Label>
-        <select
+        <ModelSelect
           id="model"
           value={model}
-          onChange={(e) => setModel(e.target.value as ModelId)}
+          onChange={setModel}
           disabled={submitting}
-          className="font-mono-num text-sm flex h-9 w-full rounded-md border border-input bg-paper/60 px-3 py-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {(Object.keys(MODELS_BY_PROVIDER) as Provider[]).map((p) => (
-            <optgroup key={p} label={PROVIDER_LABELS[p]}>
-              {MODELS_BY_PROVIDER[p].map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </optgroup>
-          ))}
-        </select>
+        />
       </div>
 
       <div className="border-t border-rule pt-5">

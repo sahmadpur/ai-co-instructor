@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { DEFAULT_MODEL } from "@/lib/anthropic/cost";
 
 let _client: Anthropic | null = null;
 
@@ -11,5 +12,5 @@ export function getAnthropic() {
 }
 
 export function getModel() {
-  return process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6";
+  return process.env.ANTHROPIC_MODEL ?? DEFAULT_MODEL;
 }

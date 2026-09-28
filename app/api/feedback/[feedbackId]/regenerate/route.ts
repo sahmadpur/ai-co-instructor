@@ -8,13 +8,14 @@ import { getOwnerUserIds } from "@/lib/owner";
 import { listSubmissions } from "@/lib/google/classroom";
 import { classifySubmission } from "@/lib/google/submissions";
 import { generateForSubmission } from "@/lib/generate";
-import { AVAILABLE_MODELS, costUsd } from "@/lib/anthropic/cost";
+import { costUsd } from "@/lib/anthropic/cost";
+import { isAllowedModel } from "@/lib/models";
 
 export const maxDuration = 300;
 
 const Body = z.object({
   additionalInstructions: z.string().optional(),
-  model: z.enum(AVAILABLE_MODELS as unknown as [string, ...string[]]).optional(),
+  model: z.string().min(1).max(120).optional(),
 });
 
 export async function POST(
@@ -32,6 +33,12 @@ export async function POST(
     return NextResponse.json({ error: "invalid body" }, { status: 400 });
   }
   const additional = parsed.data.additionalInstructions?.trim();
+  if (parsed.data.model && !(await isAllowedModel(parsed.data.model))) {
+    return NextResponse.json(
+      { error: `unknown model: ${parsed.data.model}` },
+      { status: 400 },
+    );
+  }
 
   const row = await db.query.feedback.findFirst({
     where: eq(schema.feedback.id, feedbackId),

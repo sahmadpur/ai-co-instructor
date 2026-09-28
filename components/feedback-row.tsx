@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { RegenerateDialog } from "@/components/regenerate-dialog";
+import { UploadDialog } from "@/components/upload-dialog";
 import { commentStatusLabel } from "@/lib/status-labels";
 
 export type FeedbackRowData = {
@@ -66,11 +67,13 @@ export function FeedbackRow({
   row,
   locked,
   index,
+  isFinalProject,
   onChange,
 }: {
   row: FeedbackRowData;
   locked: boolean;
   index: number;
+  isFinalProject?: boolean;
   onChange: (next: FeedbackRowData) => void;
 }) {
   const initial = row.editedFeedback ?? row.aiFeedback ?? "";
@@ -180,11 +183,19 @@ export function FeedbackRow({
         {isBusy ? (
           <div className="space-y-2">
             <div className="flex items-center gap-2 font-mono-num text-xs uppercase tracking-[0.18em] text-foreground/55">
-              <span className="anim-nib block h-2 w-2 rounded-full bg-marker" />
+              <span
+                className={`block h-2 w-2 rounded-full ${
+                  row.status === "generating"
+                    ? "anim-nib bg-marker"
+                    : "bg-foreground/30"
+                }`}
+              />
               {row.status === "generating"
                 ? hasPriorRun
                   ? "rewriting…"
                   : "writing…"
+                : isFinalProject
+                ? "waiting for upload →"
                 : "waiting…"}
             </div>
             {row.status === "generating" ? (
@@ -246,16 +257,28 @@ export function FeedbackRow({
 
       <TableCell className="w-[8.5rem] py-5 align-top">
         <div className="flex flex-col gap-1">
-          <RegenerateDialog
-            feedbackId={row.id}
-            currentModel={row.model}
-            lastInputTokens={row.lastInputTokens}
-            lastOutputTokens={row.lastOutputTokens}
-            disabled={locked || isBusy}
-            onStarted={() =>
-              onChange({ ...row, status: "generating", errorMessage: null })
-            }
-          />
+          {isFinalProject ? (
+            <UploadDialog
+              feedbackId={row.id}
+              currentModel={row.model}
+              hasFeedback={row.aiFeedback != null}
+              disabled={locked || row.status === "generating"}
+              onStarted={() =>
+                onChange({ ...row, status: "generating", errorMessage: null })
+              }
+            />
+          ) : (
+            <RegenerateDialog
+              feedbackId={row.id}
+              currentModel={row.model}
+              lastInputTokens={row.lastInputTokens}
+              lastOutputTokens={row.lastOutputTokens}
+              disabled={locked || isBusy}
+              onStarted={() =>
+                onChange({ ...row, status: "generating", errorMessage: null })
+              }
+            />
+          )}
           {row.editedFeedback != null && !locked ? (
             <Button
               variant="ghost"

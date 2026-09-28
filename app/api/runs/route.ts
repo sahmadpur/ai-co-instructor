@@ -10,7 +10,8 @@ import {
   listSubmissions,
 } from "@/lib/google/classroom";
 import { classifySubmission } from "@/lib/google/submissions";
-import { AVAILABLE_MODELS, DEFAULT_MODEL } from "@/lib/anthropic/cost";
+import { isAllowedModel, listModels } from "@/lib/models";
+import { isFinalProjectRun } from "@/lib/final-project";
 
 const Body = z.object({
   courseId: z.string().min(1),
@@ -19,7 +20,7 @@ const Body = z.object({
   assignmentTitle: z.string().min(1),
   taskDescription: z.string().optional(),
   feedbackFocus: z.string().optional(),
-  model: z.enum(AVAILABLE_MODELS as unknown as [string, ...string[]]).optional(),
+  model: z.string().min(1).max(120).optional(),
 });
 
 export async function POST(req: Request) {
@@ -36,6 +37,13 @@ export async function POST(req: Request) {
     );
   }
   const body = parsed.data;
+  if (body.model && !(await isAllowedModel(body.model))) {
+    return NextResponse.json(
+      { error: `unknown model: ${body.model}` },
+      { status: 400 },
+    );
+  }
+  const { defaultModel } = await listModels();
   const token = session.accessToken;
   const email = session.user.email ?? "unknown";
   const name = session.user.name ?? "unknown";
@@ -68,7 +76,7 @@ export async function POST(req: Request) {
     taskDescription: body.taskDescription ?? null,
     feedbackFocus: body.feedbackFocus ?? null,
     status: "draft",
-    model: body.model ?? DEFAULT_MODEL,
+    model: body.model ?? defaultModel,
     createdAt: now,
   });
 
@@ -139,6 +147,17 @@ export async function POST(req: Request) {
 
   if (feedbackRows.length > 0) {
     await db.insert(schema.feedback).values(feedbackRows);
+  }
+
+  // Final-project runs are graded by manual per-student PDF upload, so skip the
+  // auto-generation kickoff (their Classroom submissions are ungradeable zips).
+  // Drop straight to "review" and let the teacher fill rows by uploading.
+  if (isFinalProjectRun(body.courseName, body.assignmentTitle)) {
+    await db
+      .update(schema.runs)
+      .set({ status: "review" })
+      .where(eq(schema.runs.id, runId));
+    return NextResponse.json({ runId }, { status: 202 });
   }
 
   await db

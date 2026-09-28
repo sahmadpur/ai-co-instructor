@@ -13,6 +13,7 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { FeedbackRow, type FeedbackRowData } from "@/components/feedback-row";
 import { ExportMenu } from "@/components/export-menu";
+import { isFinalProjectRun } from "@/lib/final-project";
 
 export type RunStatus = "draft" | "generating" | "review" | "confirmed";
 
@@ -52,11 +53,21 @@ export function FeedbackTable({
   const pollingRef = useRef(false);
 
   const locked = run.status === "confirmed";
+  const isFinalProject = isFinalProjectRun(
+    run.courseName,
+    run.assignmentTitle,
+  );
 
+  // On final-project runs "pending" means "waiting for a manual upload" (a human
+  // action), so it shouldn't drive polling — only an in-flight generation should.
   const anyRowBusy = useMemo(
     () =>
-      rows.some((r) => r.status === "pending" || r.status === "generating"),
-    [rows],
+      rows.some(
+        (r) =>
+          r.status === "generating" ||
+          (!isFinalProject && r.status === "pending"),
+      ),
+    [rows, isFinalProject],
   );
   const shouldPoll = run.status === "generating" || anyRowBusy;
 
@@ -74,7 +85,9 @@ export function FeedbackTable({
         const stillBusy =
           data.run.status === "generating" ||
           data.feedback.some(
-            (r) => r.status === "pending" || r.status === "generating",
+            (r) =>
+              r.status === "generating" ||
+              (!isFinalProject && r.status === "pending"),
           );
         if (data.run.status !== run.status) {
           setRun((r) => ({ ...r, status: data.run.status }));
@@ -91,7 +104,7 @@ export function FeedbackTable({
       clearInterval(interval);
       pollingRef.current = false;
     };
-  }, [run.id, run.status, shouldPoll]);
+  }, [run.id, run.status, shouldPoll, isFinalProject]);
 
   const counts = useMemo(() => {
     const total = rows.length;
@@ -237,6 +250,7 @@ export function FeedbackTable({
                   row={row}
                   locked={locked}
                   index={i}
+                  isFinalProject={isFinalProject}
                   onChange={updateRow}
                 />
               ))}
