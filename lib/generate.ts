@@ -2,7 +2,7 @@ import * as XLSX from "xlsx";
 import mammoth from "mammoth";
 import * as cheerio from "cheerio";
 import { buildFeedbackPrompt } from "@/lib/anthropic/prompts";
-import { getProvider } from "@/lib/anthropic/cost";
+import { DEFAULT_MODEL, getProvider } from "@/lib/anthropic/cost";
 import { runAnthropic } from "@/lib/anthropic/generate";
 import { runOpenAI } from "@/lib/openai/generate";
 import {
@@ -60,11 +60,7 @@ export interface RunnerArgs {
 export async function generateForSubmission(
   input: GenerateInput,
 ): Promise<GenerateResult> {
-  const model = input.model ?? process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6";
-  const systemPrompt = buildFeedbackPrompt({
-    taskDescription: input.taskDescription,
-    feedbackFocus: input.feedbackFocus,
-  });
+  const model = input.model ?? process.env.ANTHROPIC_MODEL ?? DEFAULT_MODEL;
 
   const blocks: NormalizedBlock[] = [];
 
@@ -89,6 +85,34 @@ export async function generateForSubmission(
     });
   }
 
+  return runFeedbackGeneration({
+    contentBlocks: blocks,
+    taskDescription: input.taskDescription,
+    feedbackFocus: input.feedbackFocus,
+    model,
+  });
+}
+
+export interface RunFeedbackGenerationInput {
+  contentBlocks: NormalizedBlock[];
+  taskDescription: string;
+  feedbackFocus?: string;
+  model: string;
+}
+
+// Shared tail of the generation pipeline: wrap already-built content blocks
+// with the system prompt + framing and dispatch to the right provider. Both the
+// Drive path (generateForSubmission) and the manual upload path feed through here.
+export async function runFeedbackGeneration(
+  input: RunFeedbackGenerationInput,
+): Promise<GenerateResult> {
+  const systemPrompt = buildFeedbackPrompt({
+    taskDescription: input.taskDescription,
+    feedbackFocus: input.feedbackFocus,
+  });
+
+  const blocks: NormalizedBlock[] = [...input.contentBlocks];
+
   if (blocks.length === 0) {
     blocks.push({
       kind: "text",
@@ -101,9 +125,9 @@ export async function generateForSubmission(
     text: "Now write the feedback for this submission.",
   });
 
-  const provider = getProvider(model);
+  const provider = getProvider(input.model);
   const runner = provider === "openai" ? runOpenAI : runAnthropic;
-  return runner({ blocks, systemPrompt, model });
+  return runner({ blocks, systemPrompt, model: input.model });
 }
 
 async function fetchDriveBlock(

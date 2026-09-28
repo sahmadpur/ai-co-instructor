@@ -9,7 +9,7 @@ See [`REQUIREMENTS.md`](./REQUIREMENTS.md) for the full spec.
 ## Stack
 
 Next.js 16 (App Router) · React 19 · TypeScript · Auth.js v5 (Google) ·
-Drizzle ORM + better-sqlite3 · Anthropic SDK (`claude-sonnet-4-6`) ·
+Drizzle ORM + libSQL · Anthropic + OpenAI SDKs (default `claude-sonnet-5`, live model list) ·
 shadcn/ui (on base-ui) · Tailwind v4 · SheetJS · papaparse.
 
 ## Setup

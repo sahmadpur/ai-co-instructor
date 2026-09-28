@@ -15,15 +15,8 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import {
-  AVAILABLE_MODELS,
-  DEFAULT_MODEL,
-  MODELS_BY_PROVIDER,
-  PROVIDER_LABELS,
-  costUsd,
-  type ModelId,
-  type Provider,
-} from "@/lib/anthropic/cost";
+import { DEFAULT_MODEL, costUsd } from "@/lib/anthropic/cost";
+import { ModelSelect } from "@/components/model-select";
 
 const COST_DELTA_USD = 0.05;
 const COST_RATIO = 2;
@@ -43,12 +36,10 @@ export function RegenerateDialog({
   disabled?: boolean;
   onStarted?: () => void;
 }) {
-  const initial = (AVAILABLE_MODELS as readonly string[]).includes(currentModel)
-    ? (currentModel as ModelId)
-    : DEFAULT_MODEL;
+  const initial = currentModel || DEFAULT_MODEL;
   const [open, setOpen] = useState(false);
   const [instructions, setInstructions] = useState("");
-  const [model, setModel] = useState<ModelId>(initial);
+  const [model, setModel] = useState<string>(initial);
   const [confirmingExpensive, setConfirmingExpensive] = useState(false);
 
   const estimate = useMemo(() => {
@@ -154,25 +145,14 @@ export function RegenerateDialog({
           >
             model
           </Label>
-          <select
+          <ModelSelect
             id="regen-model"
             value={model}
-            onChange={(e) => {
-              setModel(e.target.value as ModelId);
+            onChange={(m) => {
+              setModel(m);
               setConfirmingExpensive(false);
             }}
-            className="font-mono-num text-sm flex h-9 w-full rounded-md border border-input bg-paper/60 px-3 py-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {(Object.keys(MODELS_BY_PROVIDER) as Provider[]).map((p) => (
-              <optgroup key={p} label={PROVIDER_LABELS[p]}>
-                {MODELS_BY_PROVIDER[p].map((m) => (
-                  <option key={m} value={m}>
-                    {m}
-                  </option>
-                ))}
-              </optgroup>
-            ))}
-          </select>
+          />
           {estimate ? (
             <p
               className={[

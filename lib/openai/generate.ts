@@ -10,11 +10,11 @@ import type {
   RunnerArgs,
 } from "@/lib/generate";
 
-// Reasoning models (o3, o4-mini, gpt-5 family) burn output budget on internal
+// Reasoning models (o-series, gpt-5.x and gpt-6 families) burn output budget on internal
 // thinking before producing visible text, so they need a much larger
 // max_output_tokens than chat models. The `reasoning.effort` knob keeps cost
 // reasonable — "low" leaves headroom for the actual feedback paragraph.
-const REASONING_MODEL = /^(o\d|gpt-5)/;
+const REASONING_MODEL = /^(o\d|gpt-[5-9])/;
 
 export async function runOpenAI(args: RunnerArgs): Promise<GenerateResult> {
   const { blocks, systemPrompt, model } = args;
